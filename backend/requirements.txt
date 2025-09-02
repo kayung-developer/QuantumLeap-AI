@@ -1,0 +1,62 @@
+# --- FastAPI & Web Server ---
+# The core web framework and the ASGI server to run it.
+# uvicorn[standard] includes performance extras like uvloop.
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-dotenv==1.0.1
+python-multipart==0.0.9
+
+# --- Asynchronous Networking ---
+# Required for making async HTTP requests to external APIs.
+aiohttp==3.9.5
+httpx==0.27.0
+
+# --- Database & ORM ---
+# SQLAlchemy is the ORM. asyncpg is the required driver for PostgreSQL.
+sqlalchemy[asyncio]==2.0.29
+asyncpg==0.29.0
+greenlet==3.0.3
+
+# --- Data Validation & Settings ---
+# Pydantic is used by FastAPI for data validation and settings management.
+pydantic==2.7.1
+pydantic-settings==2.2.1
+email-validator==2.1.1
+
+# --- Security, Auth & JWT ---
+# Libraries for Firebase auth, JWT handling, and password hashing.
+# bcrypt is pinned to a version compatible with passlib.
+firebase-admin==6.5.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+
+# --- Trading & Exchange Integration ---
+# CCXT is the core library for connecting to crypto exchanges.
+ccxt==4.3.46
+
+# --- NEW: TradingView Integration Libraries ---
+# tradingview-ta is for the live data fallback.
+# tvdatafeed is for the historical data in the training script.
+tradingview-ta==3.3.0
+tvdatafeed==2.1.0
+
+# --- AI & Machine Learning ---
+# Core libraries for data analysis and the XGBoost model.
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.4.2
+xgboost==2.0.3
+pandas-ta==0.3.14b0
+nltk==3.8.1
+vaderSentiment==3.3.2
+google-generativeai==0.5.4
+
+# --- Telegram Bot ---
+python-telegram-bot[job-queue]==21.1.1
+
+# --- Utilities ---
+# slowapi is for rate limiting endpoints.
+# joblib is for saving/loading the ML model's scaler.
+slowapi==0.1.9
+joblib==1.4.2

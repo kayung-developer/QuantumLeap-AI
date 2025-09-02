@@ -1,151 +1,256 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/M-S-HYPER/quantum-leap-ai-trader-assets/main/banner.png" alt="QuantumLeap AI Trader Banner" width="800"/>
-  <h1>QuantumLeap AI Trader</h1>
-  <p><strong>An enterprise-grade, AI-powered algorithmic trading platform.</strong></p>
-  <p>Automate strategies, build with no-code, analyze performance, and manage your portfolio with institutional-grade tools.</p>
-  
-  <p>
-    <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python" alt="Python Version">
-    <img src="https://img.shields.io/badge/FastAPI-Production--Ready-green?style=for-the-badge&logo=fastapi" alt="FastAPI">
-    <img src="https://img.shields.io/badge/React-18-blueviolet?style=for-the-badge&logo=react" alt="React">
-    <img src="https://img.shields.io/badge/React_Native-Expo-black?style=for-the-badge&logo=react" alt="React Native">
-    <img src="https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge" alt="License">
-  </p>
-</div>
+# QuantumLeap AI Trader 🚀
+
+**QuantumLeap AI Trader** is an institutional-grade, full-stack platform for building, backtesting, and deploying automated trading strategies for both **Cryptocurrency and Forex** markets. It features a powerful AI Co-Pilot, a secure custodial wallet system, and a flexible strategy engine powered by internal logic or external signals from TradingView.
+
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-**QuantumLeap AI Trader** is a full-stack, enterprise-ready application designed to provide a comprehensive and robust platform for algorithmic cryptocurrency trading. It combines a powerful **FastAPI backend** with a sleek, responsive **React frontend** and a companion **React Native mobile app**, offering a seamless experience from strategy creation to live deployment.
+## ✨ Live Demo
 
-This project was architected not just as a tool, but as a production-grade showcase of modern software development, integrating everything from real-time data streams and ML models to secure payments, custodial wallet management, and community-driven features.
+**[quantumleap-frontend.onrender.com](https://quantumleap-frontend.onrender.com/)** _(Replace with your live frontend URL)_
 
-## 🚀 The QuantumLeap Edge: Why This Platform Excels
+| | |
+| :--- | :--- |
+| **Admin Email:** `admin@quantumleap.ai` | **Admin Password:** `supersecretpassword` |
 
-*   **Intelligence over Automation:** Goes beyond simple bots. With **Optimus AI Mode**, the platform uses a pre-trained XGBoost model to vet trading signals against broader market conditions, preventing bad entries in volatile markets.
-*   **Democratized Strategy Creation:** The **Visual Strategy Builder** provides a no-code, drag-and-drop interface, empowering non-technical traders to build, backtest, and deploy complex strategies with ease.
-*   **Professional-Grade Risk & Analytics:** Control capital with advanced position sizing models (Fixed Fractional, ATR Volatility) and gain deep insights with a dedicated analytics suite, including equity curves, drawdown charts, and metrics like the Sharpe & Sortino Ratios.
-*   **Complete Trading Ecosystem:** Analyze charts with TradingView, get AI-powered insights from the "Strategy Sensei" (GPT-4), manage a custodial wallet, and execute manual trades directly from an integrated terminal.
-*   **Community-Powered Marketplace:** New users can subscribe to profitable, proven strategies from top traders. Creators are incentivized to build and share, creating a powerful growth loop.
-*   **Cross-Platform Accessibility:** Manage your portfolio and monitor bots on the web or on the go with the fully-featured React Native mobile application.
+## 📸 Screenshots & Gifs
 
-## ✨ Core Features
+| Dashboard Overview | AI Chat Assistant |
+| :---: | :---: |
+| ![Dashboard Overview](<./path_to_your_screenshot/dashboard.png>) | ![AI Chat Assistant](<./path_to_your_screenshot/chat_assistant.gif>) |
+| **Bot Management** | **Strategy Marketplace** |
+| ![Bot Management Page](<./path_to_your_screenshot/bots_page.png>) | ![Strategy Marketplace](<./path_to_your_screenshot/marketplace.png>) |
 
-| Feature | Status | Description |
-| :--- | :--- | :--- |
-| **🤖 Algorithmic Bots** | ✅ **Implemented** | Deploy bots for both **Spot** and **Futures** markets. |
-| **🎨 Visual Strategy Builder** | ✅ **Implemented** | A no-code, drag-and-drop canvas for creating custom strategies. |
-| **🧠 Optimus AI & Strategy Sensei** | ✅ **Implemented** | ML model for signal verification and GPT-powered assistant for strategy interpretation. |
-| **📈 Advanced Analytics** | ✅ **Implemented** | Per-bot analytics with Equity Curves, Drawdown Charts, Sharpe/Sortino Ratios. |
-| **🌐 Marketplace & Subscriptions** | ✅ **Implemented** | Creators can sell monthly access to premium strategies; users can subscribe. |
-| **💰 Custodial Wallet System** | ✅ **Implemented** | Full wallet functionality for deposits, swaps, and withdrawals. |
-| **📱 React Native Mobile App** | ✅ **Implemented** | A complete mobile companion for iOS and Android. |
-| **🖥️ Integrated Trading Terminal**| ✅ **Implemented** | Place manual market and limit orders directly from the market analysis page. |
-| **🔔 Real-time Notifications** | ✅ **Implemented** | Instant alerts via WebSockets and Telegram. |
-| **🔐 Superuser Admin Panel** | ✅ **Implemented** | A full admin dashboard to manage users, monitor system health, and trigger controls. |
+## 的核心功能 (Core Features)
+
+*   **📈 Dual Asset Trading:** Seamlessly create and manage trading bots for both **Cryptocurrency** (e.g., BTC/USDT) and **Forex** (e.g., EUR/USD) markets.
+*   **🤖 Advanced Trading Strategies:**
+    *   Utilize pre-built strategies like MA Crossover, RSI & MACD, and Bollinger Bands.
+    *   **TradingView Webhook Integration:** Trigger trades from any custom alert or Pine Script™ strategy on TradingView for unlimited flexibility.
+    *   **MT4/5 Ready:** The backend is architected with a secure endpoint ready to receive trade signals from a future MT4/5 bridge/EA.
+*   **🧠 AI-Powered Insights:**
+    *   **AI Co-Pilot:** Get real-time analysis of any trading pair, powered by an XGBoost model and TradingView fallback for maximum uptime.
+    *   **AI Chat Assistant:** A public-facing chatbot to answer user questions about features, pricing, and general inquiries.
+    *   **Strategy Sensei:** An internal AI assistant for premium users to help them build trading strategies using natural language.
+*   **🔒 Secure Wallet & Swap System:**
+    *   **Custodial Wallets:** Securely deposit, store, and manage crypto assets.
+    *   **Slippage Protection:** A production-grade "Quote & Confirm" swap system ensures users get the price they see, with timed quotes and no slippage.
+*   **📊 Comprehensive Dashboard & Analytics:**
+    *   Real-time P&L tracking for both paper and live trading bots.
+    *   Live portfolio donut chart to visualize asset allocation.
+    *   Interactive TradingView charts integrated directly into the dashboard.
+*   **🛒 Strategy Marketplace:**
+    *   Publish your own successful bots for others to use.
+    *   Choose to share bots for free (cloneable) or on a monthly subscription basis.
+*   **🔔 Real-time Notifications:** Stay updated with integrated **Telegram** alerts and live **WebSocket** messages for trade executions and bot status changes.
+*   **🔑 Secure API Management:**
+    *   Encrypt and manage API keys for external exchanges.
+    *   Generate Platform API Keys for programmatic access to your account (e.g., for an MT4/5 bridge).
+*   **👑 Full-Featured Admin Panel:** A superuser dashboard to manage users, view system statistics, impersonate users for support, and perform emergency actions.
 
 ## 🛠️ Tech Stack
 
--   **Backend:** FastAPI, Python 3.10, SQLAlchemy (Async)
--   **Frontend (Web):** React 18, React Router, Tailwind CSS, React Query, Recharts, React Flow
--   **Frontend (Mobile):** React Native (Expo), React Navigation, Redux Toolkit
--   **Database:** PostgreSQL (recommended)
--   **AI/ML:** XGBoost, Scikit-learn, Pandas-TA, NLTK, OpenAI GPT-4 API
--   **Authentication:** Firebase Auth (for users), JWT (for backend sessions)
--   **Real-time:** WebSockets (FastAPI), Telegram Bot API
--   **Deployment:** Docker, Nginx (configuration examples can be added)
+| Category | Technology |
+| :--- | :--- |
+| **Frontend** | ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-38B2AC?logo=tailwind-css&logoColor=white) ![React Query](https://img.shields.io/badge/-React%20Query-FF4154?logo=react-query&logoColor=white) ![Framer Motion](https://img.shields.io/badge/-Framer%20Motion-0055FF?logo=framer&logoColor=white) |
+| **Backend** | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?logo=fastapi&logoColor=white) ![Python](https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/-SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) |
+| **Database** | ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-4169E1?logo=postgresql&logoColor=white) |
+| **AI/ML** | ![XGBoost](https://img.shields.io/badge/-XGBoost-0069B3) ![Pandas](https://img.shields.io/badge/-Pandas-150458?logo=pandas&logoColor=white) ![Google Gemini](https://img.shields.io/badge/-Google%20Gemini-8E75B2?logo=google&logoColor=white) |
+| **Deployment**| ![Render](https://img.shields.io/badge/-Render-46E3B7?logo=render&logoColor=white) ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white) |
+| **Services** | ![Firebase](https://img.shields.io/badge/-Firebase-FFCA28?logo=firebase&logoColor=white) ![TradingView](https://img.shields.io/badge/-TradingView-131722?logo=tradingview&logoColor=blue) ![Telegram](https://img.shields.io/badge/-Telegram-2CA5E0?logo=telegram&logoColor=white) |
 
-## ⚙️ Getting Started: Local Setup
+---
+
+## 🚀 Getting Started: Local Development
+
+Follow these instructions to set up and run the project on your local machine.
 
 ### Prerequisites
-*   Python 3.10+, Node.js 16+, Docker (optional but recommended)
-*   A Firebase project for authentication.
-*   API keys for services listed in `.env.example` (OpenAI, payment gateways, etc.).
-*   A configured VPN is **highly recommended** to avoid network blocks from ISPs.
 
-### 1. Backend Setup
+*   **Git:** [Download & Install Git](https://git-scm.com/downloads)
+*   **Python:** Version 3.10+ ([Download Python](https://www.python.org/downloads/))
+*   **Node.js:** Version 18+ (LTS recommended) ([Download Node.js](https://nodejs.org/))
+
+### 1. Clone the Repository
+
 ```bash
-# Navigate to the backend directory
-cd backend
-
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Create your .env file from the example and fill in your keys
-cp .env.example .env
-nano .env # or use any text editor
-
-# Train the AI model (requires a working network connection)
-python train_model.py
-
-# Run the backend server
-uvicorn main:app --reload
+git clone https://github.com/your-username/quantumleap-ai-trader.git
+cd quantumleap-ai-trader
 ```
 
-### 2. Frontend (Web) Setup
-```bash
-# Navigate to the frontend directory from the root
-cd frontend
+### 2. Backend Setup
 
-# Install dependencies
-npm install
+1.  **Navigate to the backend directory:**
+    ```bash
+    cd backend
+    ```
+2.  **Create and activate a virtual environment:**
+    ```bash
+    # For Windows
+    python -m venv venv
+    .\venv\Scripts\activate
 
-# Create your .env file and add your Firebase client config
-cp .env.example .env
-nano .env
+    # For macOS/Linux
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+3.  **Install Python dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  **Create and configure your `.env` file:**
+    *   Rename the `example.env` file to `.env`.
+    *   Fill in all the required variables as described in the **Environment Variables** section below. This is a critical step.
 
-# Run the frontend development server
-npm start
+### 3. Frontend Setup
+
+1.  **Navigate to the frontend directory:**
+    ```bash
+    # From the project root
+    cd frontend
+    ```2.  **Install Node.js dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Create your frontend `.env` file:**
+    *   Create a file named `.env` in the `frontend` directory.
+    *   Add the variable `REACT_APP_API_BASE_URL=http://localhost:8000/api`.
+
+### 4. Running the Application
+
+You need **3 terminals** running simultaneously.
+
+*   **Terminal 1 (Backend Server):**
+    ```bash
+    # From the backend/ directory
+    uvicorn main:app --reload
+    ```
+*   **Terminal 2 (Frontend App):**
+    ```bash
+    # From the frontend/ directory
+    npm start
+    ```
+*   **Terminal 3 (Secure Tunnel for Webhooks):**
+    ```bash
+    # From the frontend/ directory
+    npm run tunnel
+    ```
+    *This will provide a public URL. Use this URL when setting up TradingView alerts.*
+
+---
+
+## 🔑 Environment Variables
+
+You must create and configure `.env` files for the application to work.
+
+### Backend (`backend/.env`)
+
+Copy the content below into `backend/.env` and fill in your secrets.
+
+```env
+# Database URL (For local dev, this is correct. For production, use your hosted DB URL)
+DATABASE_URL="sqlite+aiosqlite:///./database.db"
+
+# Security (GENERATE YOUR OWN long, random strings for these)
+SECRET_KEY="<your_super_secret_jwt_key>"
+API_ENCRYPTION_KEY="<your_32_character_url_safe_encryption_key>"
+
+# Firebase (Path to your service account JSON file)
+FIREBASE_CREDENTIALS_PATH="./firebase-credentials.json"
+
+# AI Services
+GOOGLE_GEMINI_API_KEY="<your_google_gemini_api_key>"
+
+# Notifications
+TELEGRAM_BOT_TOKEN="<your_telegram_bot_token>"
+
+# TradingView (For data fallback & webhooks. Create a free account.)
+TRADINGVIEW_USERNAME="<your_tradingview_username>"
+TRADINGVIEW_PASSWORD="<your_tradingview_password>"
+TRADINGVIEW_WEBHOOK_SECRET="<create_a_long_secret_phrase_for_alerts>"
+
+# Superuser Admin Account
+SUPERUSER_EMAIL="admin@yourapp.com"
+SUPERUSER_PASSWORD="<a_very_strong_password>"
+
+# Payment Gateways (Use sandbox keys for local dev)
+PAYPAL_CLIENT_ID="<your_paypal_sandbox_client_id>"
+PAYPAL_CLIENT_SECRET="<your_paypal_sandbox_secret_key>"
+PAYPAL_API_BASE="https://api-m.sandbox.paypal.com"
+PAYSTACK_SECRET_KEY="<your_paystack_test_secret_key>"
+
+# Other Services
+NEWS_API_KEY="<your_newsapi.org_key>"
+
+# Email Configuration (For contact form, e.g., using Mailgun/SendGrid)
+MAIL_USERNAME="<your_smtp_username>"
+MAIL_PASSWORD="<your_smtp_password>"
+MAIL_FROM="<noreply@yourapp.com>"
+MAIL_TO="<your_support_email@yourapp.com>"
+MAIL_SERVER="<smtp.yourprovider.com>"
+MAIL_PORT=587
 ```
 
-### 3. Frontend (Mobile) Setup
-```bash
-# Navigate to the mobile directory from the root
-cd QuantumLeapMobile
+### Frontend (`frontend/.env`)
 
-# Install dependencies
-npm install
-
-# IMPORTANT: Update the backend IP address in src/api/axiosInstance.js
-# Replace 'YOUR_BACKEND_IP' with your computer's local IP address (e.g., 192.168.1.100)
-
-# Run the mobile app using Expo Go
-npx expo start
+```env
+REACT_APP_API_BASE_URL=http://localhost:8000/api
 ```
 
-## 🗺️ Advanced Future Roadmap
+---
 
-This platform is built for continuous evolution. The following roadmap outlines the next steps to solidify its position as a market leader.
+## ☁️ Deployment
 
-| Phase | Feature | Description | Impact |
-| :--- | :--- | :--- | :--- |
-| **Platform Intelligence** | **Multi-Timeframe Analysis** | Upgrade the Optimus AI to analyze daily and weekly trends before approving trades on lower timeframes (e.g., 15m, 1h). | **Very High** |
-| | **Dynamic Hedging Module** | For the custodial wallet, build a service that automatically hedges user positions on an omnibus exchange account to manage platform risk. | **Critical (for Live Custodial)** |
-| | **AI Portfolio Optimizer** | A new "meta-bot" that uses ML to analyze a user's entire portfolio and bot collection, suggesting allocation adjustments to maximize risk-adjusted returns. | **Very High** |
-| **User Experience** | **Live Paper Trading** | Upgrade paper trading to use a live data feed instead of historical data, providing a more realistic simulation experience. | **High** |
-| | **Advanced Chart Trading** | Allow users to place orders, adjust TP/SL, and define grid bot ranges by clicking and dragging directly on the TradingView chart. | **High** |
-| **Ecosystem & Growth** | **Social Trading / Copy Trading** | Allow users to automatically copy the trades of top-performing bots from the marketplace with allocated capital and risk limits. | **Very High** |
-| | **Terminal for Multiple Exchanges** | Expand the Trading Terminal to connect to and trade across multiple user-connected exchanges from a single interface. | **High**|
-| | **Decentralized Strategy Vaults (DeFi)** | Explore integrating with DeFi protocols to allow users to tokenize their strategies as NFTs or deposit them into secure, on-chain vaults. | **Innovative** |
+This application is designed to be deployed on **Render** for a seamless, unified experience.
 
-## 🙌 Contributing
+1.  **Deploy PostgreSQL on Render:** Create a new PostgreSQL instance to get your production `DATABASE_URL`.
+2.  **Deploy Backend on Render:**
+    *   Create a "Web Service" pointing to your GitHub repo.
+    *   **Root Directory:** `backend`
+    *   **Build Command:** `pip install -r requirements.txt`
+    *   **Start Command:** Render will use the `Procfile`.
+    *   Add all environment variables from your `.env` file into the Render dashboard. Use the "Secret File" option for your `firebase-credentials.json`.
+3.  **Deploy Frontend on Render:**
+    *   Create a "Static Site" pointing to your GitHub repo.
+    *   **Root Directory:** `frontend`
+    *   **Build Command:** `npm install && npm run build`
+    *   **Publish Directory:** `build`
+    *   Add the `REACT_APP_API_BASE_URL` environment variable, pointing to your live backend's URL.
+4.  **Final Steps:**
+    *   Update your **Firebase Authorized Domains** to include your live frontend URL.
+    *   Update your **Payment Gateway** callback URLs.
 
-Contributions are the lifeblood of innovation. If you have a suggestion or a feature you'd like to build, please fork the repository and create a pull request.
+##  webhook  ব্যবহার (Webhook Usage)
 
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+### TradingView Alert Setup
+
+To trigger your bots from TradingView:
+
+1.  Create a "TradingView Alert" bot in the QuantumLeap UI. It will provide you with a unique Webhook URL.
+2.  In TradingView, create any alert.
+3.  In the alert's "Notifications" tab, check "Webhook URL" and paste the provided URL.
+4.  In the "Message" field, provide a JSON body to control the trade:
+
+    **Basic Buy/Sell:**
+    ```json
+    {
+      "secret": "<your_tradingview_webhook_secret>",
+      "action": "buy"
+    }
+    ```
+
+    **Advanced Trade with Dynamic Sizing:**
+    ```json
+    {
+      "secret": "<your_tradingview_webhook_secret>",
+      "action": "sell",
+      "risk_percent": 1.5
+    }
+    ```
+
+---
 
 ## 📜 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-<div align="center">
-  <p>Built with passion by <strong>Slogan Technologies LLC</strong></p>
-</div>
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.

@@ -15,6 +15,7 @@ import os
 import asyncio
 import signal
 from collections import defaultdict
+import base64
 import json
 import logging
 import datetime
@@ -218,11 +219,25 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 try:
-    cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+    # First, check if the Base64 environment variable exists (for Render)
+    firebase_creds_b64 = os.getenv('FIREBASE_CREDS_B64')
+    
+    if firebase_creds_b64:
+        logger.info("Found FIREBASE_CREDS_B64 env var. Decoding for production.")
+        # Decode the Base64 string back into JSON
+        decoded_creds = base64.b64decode(firebase_creds_b64)
+        cred_dict = json.loads(decoded_creds)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        # If the env var is not found, fall back to the local file path (for development)
+        logger.info("FIREBASE_CREDS_B64 not found. Using local file path for Firebase credentials.")
+        cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+        
     firebase_admin.initialize_app(cred)
     logger.info("Firebase Admin SDK initialized successfully.")
+
 except Exception as e:
-    logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
+    logger.error(f"Failed to initialize Firebase Admin SDK: {e}", exc_info=True)
 
 
 class ConnectionManager:
@@ -6178,3 +6193,4 @@ if __name__ == "__main__":
     # uvicorn main:app --reload
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
+

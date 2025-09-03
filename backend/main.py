@@ -4279,35 +4279,47 @@ async def lifespan(app: FastAPI):
     # ==================================================================
     logger.info("QuantumLeap AI Trader Starting Up...")
 
-    # --- 1. Initialize Database and Create Superuser ---
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # --- 1. MODIFIED: Database Health Check and Initialization ---
+    try:
+        logger.info("Performing database connection health check and initialization...")
+        async with engine.begin() as conn:
+            # First, execute a simple query to confirm the connection is alive.
+            # This will fail fast if the DB is unreachable, giving a clear error.
+            await conn.execute(text("SELECT 1"))
+            
+            # If the connection is successful, proceed with creating tables.
+            await conn.run_sync(Base.metadata.create_all)
+        
+        logger.info("Database health check passed and tables initialized.")
 
-    async with async_session_maker() as session:
-        result = await session.execute(select(User).where(User.email == settings.SUPERUSER_EMAIL))
-        if result.scalar_one_or_none() is None:
-            superuser = User(
-                id=f"superuser-{uuid4()}",
-                email=settings.SUPERUSER_EMAIL,
-                role=UserRole.SUPERUSER.value,
-                subscription_plan=SubscriptionPlan.ULTIMATE.value,
-                subscription_expires_at=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-                    days=365 * 100)
-            )
-            session.add(superuser)
-            await session.commit()
-            logger.info("Superuser created.")
+        # --- Create Superuser (only if DB connection was successful) ---
+        async with async_session_maker() as session:
+            result = await session.execute(select(User).where(User.email == settings.SUPERUSER_EMAIL))
+            if result.scalar_one_or_none() is None:
+                superuser = User(
+                    id=f"superuser-{uuid4()}",
+                    email=settings.SUPERUSER_EMAIL,
+                    role=UserRole.SUPERUSER.value,
+                    subscription_plan=SubscriptionPlan.ULTIMATE.value,
+                    subscription_expires_at=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=365 * 100)
+                )
+                session.add(superuser)
+                await session.commit()
+                logger.info("Superuser created.")
+
+    except Exception as e:
+        # If the health check or initialization fails, log a fatal error and stop the app.
+        logger.error(f"FATAL: Database connection failed during startup. The application cannot continue. Error: {e}", exc_info=True)
+        # Re-raising the exception is crucial to prevent the app from starting in a broken state.
+        raise e
 
     # --- 2. Start Core Background Services ---
     logger.info("Starting background services...")
+    # ... (The rest of your startup logic remains exactly the same)
     telegram_service.setup_handlers()
     await telegram_service.initialize_bot_info()
-
-    # Store all background tasks on app.state for graceful shutdown
     app.state.telegram_task = asyncio.create_task(telegram_service.run_polling())
     app.state.market_regime_task = asyncio.create_task(market_regime_service.run_analysis_loop())
-
-    # --- FIX: Correctly create and store the broadcast task ---
     app.state.broadcast_task = asyncio.create_task(broadcast_market_data())
     logger.info("All background services have been started.")
 
@@ -6324,6 +6336,7 @@ if __name__ == "__main__":
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
     # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level
+
 
 
 

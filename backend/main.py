@@ -235,10 +235,12 @@ try:
     logger.info("Firebase Admin SDK initialized successfully.")
 
 # --- THIS IS THE MISSING BLOCK THAT CAUSED THE CRASH ---
+# Every 'try' block must have a corresponding 'except' or 'finally'.
 except Exception as e:
     logger.error(f"FATAL: Failed to initialize Firebase Admin SDK. This is a critical error.", exc_info=True)
-    # In a production environment, you might want the app to exit if Firebase fails to init.
-    # For now, we will log it as a fatal error.
+    # In a production environment, this error is critical. The application cannot run
+    # without authentication, so we re-raise the exception to stop the startup process.
+    raise e
 
 
 class ConnectionManager:
@@ -6320,5 +6322,6 @@ if __name__ == "__main__":
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
     # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level
+
 
 

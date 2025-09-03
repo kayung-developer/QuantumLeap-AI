@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8000/api', // Your FastAPI backend URL
+  baseURL: 'https://quantumleap-ai.onrender.com/api', // Your FastAPI backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         try {
-          const { data } = await axios.post('http://localhost:8000/api/auth/token/refresh', {
+          const { data } = await axios.post('https://quantumleap-ai.onrender.com/api/auth/token/refresh', {
             refresh_token: refreshToken
           });
           localStorage.setItem('accessToken', data.access_token);
@@ -66,6 +66,7 @@ export const getErrorMessage = (error) => {
       return error.message || "An unknown error occurred.";
     }
 };
+
 
 
 export default axiosInstance;

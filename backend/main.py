@@ -90,7 +90,8 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     Text,
-    UUID
+    UUID, 
+    text
 )
 from sqlalchemy import Numeric
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -6336,6 +6337,7 @@ if __name__ == "__main__":
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
     # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level
+
 
 
 

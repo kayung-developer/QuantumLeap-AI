@@ -169,7 +169,7 @@ class Settings(BaseSettings):
     BINANCE_API_KEY: Optional[str] = None
     BINANCE_API_SECRET: Optional[str] = None
     SUPERUSER_EMAIL: EmailStr = "admin@quantumleap.ai"
-    SUPERUSER_PASSWORD: str = "supersecretpassword"
+    SUPERUSER_PASSWORD: str = "Superqlpadmin@2025"
     BITGO_API_KEY: str
     BITGO_API_BASE_URL: str
     BITGO_WALLET_ID_BTC: str
@@ -6193,5 +6193,6 @@ if __name__ == "__main__":
     # uvicorn main:app --reload
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
+
 
 

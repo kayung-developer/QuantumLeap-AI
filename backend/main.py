@@ -32,7 +32,7 @@ import ccxt.async_support as ccxt
 import firebase_admin
 import google.generativeai as genai
 import joblib  # Add this to your core imports
-# import tensorflow as tf
+import tensorflow as tf
 # import tf_keras as tf
 # import xgboost as xgb # Uncomment if you have a pre-trained XGBoost model
 import nltk
@@ -6310,3 +6310,4 @@ if __name__ == "__main__":
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
     # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level
+

@@ -39,7 +39,6 @@ ccxt==4.3.46
 # tradingview-ta is for the live data fallback.
 # tvdatafeed is for the historical data in the training script.
 tradingview-ta==3.3.0
-tvdatafeed==2.1.0
 
 # --- AI & Machine Learning ---
 # Core libraries for data analysis and the XGBoost model.
@@ -60,3 +59,4 @@ python-telegram-bot[job-queue]==21.1.1
 # joblib is for saving/loading the ML model's scaler.
 slowapi==0.1.9
 joblib==1.4.2
+

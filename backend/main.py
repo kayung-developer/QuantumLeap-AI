@@ -178,7 +178,7 @@ class Settings(BaseSettings):
     # --- NEW: Telegram Bot Settings ---
     TELEGRAM_BOT_TOKEN: str
     # --- NEW: Webhook Secret for signature verification ---
-    BASE_URL: str = "https://brown-baths-design.loca.lt"  # Your actual production domain
+    BASE_URL: str = "https://quantumleap-ai.onrender.com"  # Your actual production domain
     TRADINGVIEW_WEBHOOK_SECRET: str = "default_secret_for_dev" # A long, random string you create and keep secret
     TELEGRAM_ADMIN_CHAT_ID: str
     BITGO_WEBHOOK_SECRET: str
@@ -3360,7 +3360,7 @@ class StrategyService:
 
                     # Provide the user with the necessary info to configure their alert
                     # NOTE: Replace 'https://yourdomain.com' with your actual public domain
-                    webhook_url = f"https://brown-baths-design.loca.lt/api/bots/webhook/{current_bot.webhook_id}"
+                    webhook_url = f"https://quantumleap-ai.onrender.com/api/bots/webhook/{current_bot.webhook_id}"
                     setup_message = (
                         f"🚀 Bot `{current_bot.name}` is now active and listening for TradingView alerts.\n\n"
                         f"1. **Webhook URL:**\n`{webhook_url}`\n\n"
@@ -6193,4 +6193,5 @@ if __name__ == "__main__":
     # uvicorn main:app --reload
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
+
 

@@ -1,32 +1,46 @@
-#
 # QuantumLeap AI Trader - Backend
 # main.py
 #
 # This monolithic file contains the entire backend logic for the application,
 # including the FastAPI server, database models, API endpoints, trading logic,
 # AI/ML integrations, and payment processing.
-import random
-
-import joblib  # Add this to your core imports
-import xgboost as xgb  # Add this to your AI/ML imports
-import itertools
 # --- Core Libraries ---
-import os
 import asyncio
-import signal
-from collections import defaultdict
-import base64
+import datetime
+import hashlib
+import hmac
+import itertools
 import json
 import logging
-import datetime
-import hmac
-import hashlib
-import time
-from contextlib import asynccontextmanager
-from typing import List, Dict, Any, Optional, AsyncGenerator, Annotated
-from enum import Enum as PythonEnum
+import random
 import secrets
+import smtplib
+import time
+from abc import ABC, abstractmethod
+from collections import defaultdict
+from contextlib import asynccontextmanager
+from decimal import Decimal, getcontext
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from enum import Enum as PythonEnum
+from typing import List, Dict, Any, Optional, AsyncGenerator, Annotated
+from uuid import uuid4, UUID as PythonUUID  # Keep Python's UUID but rename it
 
+import aiohttp
+import ccxt.async_support as ccxt
+# --- Security and Authentication ---
+import firebase_admin
+import google.generativeai as genai
+import joblib  # Add this to your core imports
+# import tensorflow as tf
+# import tf_keras as tf
+# import xgboost as xgb # Uncomment if you have a pre-trained XGBoost model
+import nltk
+# --- AI & Machine Learning ---
+import numpy as np
+import pandas as pd
+import xgboost as xgb  # Add this to your AI/ML imports
+from cryptography.fernet import Fernet
 # --- FastAPI and Related Libraries ---
 from fastapi import (
     FastAPI,
@@ -42,36 +56,14 @@ from fastapi import (
     Body,
     Query
 )
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
 from fastapi import UploadFile, File
-
-from uuid import uuid4, UUID as PythonUUID  # Keep Python's UUID but rename it
-from enum import Enum as PythonEnum
-from decimal import Decimal, getcontext
-
-# --- Database (SQLAlchemy) ---
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Integer,
-    String,
-    Float,
-    DateTime,
-    Boolean,
-    ForeignKey,
-    Text,
-    event,
-    UUID
-)
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship, Session, selectinload
-from sqlalchemy.future import select
-from sqlalchemy.sql import func
-from sqlalchemy import Numeric
-
+from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer
+from firebase_admin import credentials, auth
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 # --- Pydantic for Data Validation ---
 from pydantic import (
     BaseModel,
@@ -80,48 +72,36 @@ from pydantic import (
     validator,
     ConfigDict
 )
-from pydantic_settings import BaseSettings
 from pydantic import field_validator
-# --- Security and Authentication ---
-import firebase_admin
-from firebase_admin import credentials, auth
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from cryptography.fernet import Fernet
-
-# --- AI & Machine Learning ---
-import numpy as np
-import pandas as pd
-#import tensorflow as tf
-# import tf_keras as tf
-from sklearn.preprocessing import MinMaxScaler
-# import xgboost as xgb # Uncomment if you have a pre-trained XGBoost model
-import nltk
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import google.generativeai as genai
-
-# --- Trading & Broker Integration ---
-from tradingview_ta import TA_Handler, Interval
-import ccxt.async_support as ccxt
-import aiohttp
-from abc import ABC, abstractmethod
-from oandapyV20 import API
-from oandapyV20.contrib.requests import MarketOrderRequest, TakeProfitDetails, StopLossDetails
-
+from pydantic_settings import BaseSettings
 # --- Utilities ---
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-
+from slowapi.util import get_remote_address
+# --- Database (SQLAlchemy) ---
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+    Boolean,
+    ForeignKey,
+    Text,
+    UUID
+)
+from sqlalchemy import Numeric
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship, selectinload
+from sqlalchemy.sql import func
 # --- NEW: Telegram Bot Library ---
 from telegram import Update, User as TelegramUser
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ApplicationBuilder
 from telegram.error import InvalidToken
-
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
+from telegram.ext import CommandHandler, ContextTypes, ApplicationBuilder
+# --- Trading & Broker Integration ---
+from tradingview_ta import TA_Handler, Interval
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # ==============================================================================
 # 1. CONFIGURATION
@@ -153,54 +133,68 @@ for package_id, package_path in REQUIRED_NLTK_PACKAGES.items():
 
 
 class Settings(BaseSettings):
+    # --- Core Secrets (MUST be set in Render) ---
     DATABASE_URL: str
     SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    FIREBASE_CREDENTIALS_PATH: str
     API_ENCRYPTION_KEY: str
+    
+    # --- Firebase Configuration ---
+    # We will provide this as a single-line Base64 string in the environment
+    FIREBASE_CREDS_B64: str 
+    
+    # --- API Keys & Secrets ---
     PAYPAL_CLIENT_ID: str
     PAYPAL_CLIENT_SECRET: str
-    PAYPAL_API_BASE: str = "https://api-m.sandbox.paypal.com"
     PAYSTACK_SECRET_KEY: str
     FLUTTERWAVE_SECRET_KEY: str
     NEWS_API_KEY: str
-    BINANCE_API_KEY: Optional[str] = None
-    BINANCE_API_SECRET: Optional[str] = None
-    SUPERUSER_EMAIL: EmailStr = "admin@quantumleap.ai"
-    SUPERUSER_PASSWORD: str = "Superqlpadmin@2025"
     BITGO_API_KEY: str
-    BITGO_API_BASE_URL: str
-    BITGO_WALLET_ID_BTC: str
-    BITGO_WALLET_ID_ETH: str
-    PLATFORM_USER_ID: str
-    # --- NEW: Telegram Bot Settings ---
-    TELEGRAM_BOT_TOKEN: str
-    # --- NEW: Webhook Secret for signature verification ---
-    BASE_URL: str = "https://quantumleap-ai.onrender.com"  # Your actual production domain
-    TRADINGVIEW_WEBHOOK_SECRET: str = "default_secret_for_dev" # A long, random string you create and keep secret
-    TELEGRAM_ADMIN_CHAT_ID: str
-    BITGO_WEBHOOK_SECRET: str
-
     GOOGLE_GEMINI_API_KEY: str
-
-    # --- NEW: Email Configuration ---
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    MAIL_FROM: EmailStr
-    MAIL_TO: EmailStr  # Where the contact form messages will be sent
-    MAIL_SERVER: str
-    MAIL_PORT: int
-
+    TELEGRAM_BOT_TOKEN: str
+    TRADINGVIEW_WEBHOOK_SECRET: str
+    BITGO_WEBHOOK_SECRET: str
     TRADINGVIEW_USERNAME: str
     TRADINGVIEW_PASSWORD: str
 
+    # --- Superuser Credentials (MUST be set in Render) ---
+    SUPERUSER_EMAIL: EmailStr
+    SUPERUSER_PASSWORD: str
+    
+    # --- Application Configuration (MUST be set in Render) ---
+    BASE_URL: str  # e.g., "https://quantumleap-ai.onrender.com"
+    PLATFORM_USER_ID: str
+    TELEGRAM_ADMIN_CHAT_ID: str
+    
+    # --- Custodial Service Config ---
+    BITGO_API_BASE_URL: str
+    BITGO_WALLET_ID_BTC: str
+    BITGO_WALLET_ID_ETH: str
+
+    # --- Email Configuration ---
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: EmailStr
+    MAIL_TO: EmailStr
+    MAIL_SERVER: str
+    MAIL_PORT: int
+
+    # --- Static Defaults (Safe to keep in code) ---
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    PAYPAL_API_BASE: str = "https://api-m.sandbox.paypal.com" # Or the production URL
+
+    # --- Optional Keys (Can be omitted from environment) ---
+    BINANCE_API_KEY: Optional[str] = None
+    BINANCE_API_SECRET: Optional[str] = None
+
     class Config:
+        # This tells Pydantic to load the variables from a .env file for local development
         env_file = ".env"
 
 
 settings = Settings()
+
 
 # ==============================================================================
 # 2. CORE INFRASTRUCTURE INITIALIZATION
@@ -235,9 +229,6 @@ try:
         
     firebase_admin.initialize_app(cred)
     logger.info("Firebase Admin SDK initialized successfully.")
-
-except Exception as e:
-    logger.error(f"Failed to initialize Firebase Admin SDK: {e}", exc_info=True)
 
 
 class ConnectionManager:
@@ -307,6 +298,17 @@ websocket_manager = ConnectionManager()
 # ==============================================================================
 # 3. DATABASE MODELS (SQLAlchemy ORM) - V2 (Custodial Ledger Syst
 # ==============================================================================
+
+# --- NEW: Enum for supported exchanges, including MT4/5 ---
+class ExchangeName(str, PythonEnum):
+    BINANCE = "binance"
+    BYBIT = "bybit"
+    KUCOIN = "kucoin"
+    OKX = "okx"
+    MT4 = "mt4"
+    MT5 = "mt5"
+
+
 class PositionSizingStrategy(str, PythonEnum):
     FIXED_AMOUNT = "fixed_amount"
     FIXED_FRACTIONAL = "fixed_fractional"
@@ -372,15 +374,18 @@ class OrderType(str, PythonEnum):
     LIMIT = "limit"
     STOP_LIMIT = "stop_limit"
 
+
 # --- NEW: Market Regime Service ---
 class MarketRegime(str, PythonEnum):
     BULLISH = "BULLISH"
     BEARISH = "BEARISH"
     SIDEWAYS = "SIDEWAYS"
 
+
 class MarketType(str, PythonEnum):
     SPOT = "spot"
     FUTURE = "future"
+
 
 class OptimizationStatus(str, PythonEnum):
     PENDING = "PENDING";
@@ -388,9 +393,17 @@ class OptimizationStatus(str, PythonEnum):
     COMPLETED = "COMPLETED";
     FAILED = "FAILED"
 
+
 class AssetClass(str, PythonEnum):
     CRYPTO = "crypto"
     FOREX = "forex"
+
+
+class NotificationType(str, PythonEnum):
+    NEW_USER = "new_user"
+    BOT_ERROR = "bot_error"
+    PAYMENT_SUCCESS = "payment_success"
+    PAYMENT_FAILURE = "payment_failure"
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
@@ -490,8 +503,6 @@ class WithdrawalAccount(Base):
     user = relationship("User", back_populates="withdrawal_accounts")
 
 
-
-
 class TradingBot(Base):
     __tablename__ = "trading_bots"
     id = Column(UUID, primary_key=True, default=uuid4)
@@ -500,7 +511,7 @@ class TradingBot(Base):
     strategy_name = Column(String, nullable=True)
     strategy_params = Column(Text, nullable=True)
     symbol = Column(String, nullable=False)
-    exchange = Column(String, nullable=False)
+    exchange = Column(String, nullable=False)  # Will now store values from ExchangeName enum
     is_active = Column(Boolean, default=False)
     is_paper_trading = Column(Boolean, default=False)
     use_dynamic_sizing = Column(Boolean, default=False)  # NEW COLUMN
@@ -620,6 +631,15 @@ class PlatformAPIKey(Base):
 
 
 
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(UUID, primary_key=True, default=uuid4)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True) # Optional: link to a specific user
+    type = Column(String(50), nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 # ==============================================================================
 # 4. PYDANTIC SCHEMAS (Data Transfer Objects)
 # ==============================================================================
@@ -715,7 +735,7 @@ class TradingBotCreate(BaseModel):
     strategy_name: Optional[str] = None
     strategy_params: Optional[Dict[str, Any]] = None
     symbol: str
-    exchange: str
+    exchange: ExchangeName  # Use the new Enum for validation
     is_paper_trading: bool = False
     use_dynamic_sizing: bool = False
     mode: BotMode = BotMode.NON_CUSTODIAL
@@ -738,7 +758,7 @@ class TradingBotCreate(BaseModel):
     market_type: MarketType = MarketType.SPOT
     leverage: int = Field(1, gt=0, le=125)  # Validate leverage between 1 and 125
 
-   # --- NEW: Validator to ensure one strategy type is provided ---
+    # --- NEW: Validator to ensure one strategy type is provided ---
     @validator('strategy_name', always=True)
     def check_strategy_consistency(cls, v, values):
         if values.get('strategy_type') == StrategyType.PREBUILT and not v:
@@ -746,6 +766,8 @@ class TradingBotCreate(BaseModel):
         if values.get('strategy_type') == StrategyType.VISUAL and not values.get('visual_strategy_json'):
             raise ValueError("visual_strategy_json is required for visual strategies")
         return v
+
+
 class TradingBotSchema(BaseModel):
     id: PythonUUID  # Use the standard Python UUID type for validation
     name: str
@@ -807,6 +829,7 @@ class TradingBotSchema(BaseModel):
             except json.JSONDecodeError:
                 return {}
         return v
+
     # This validator tells Pydantic how to convert the `strategy_params` field.
     # --- NEW: Add a validator for sizing_params ---
     @field_validator('sizing_params', mode='before')
@@ -1037,8 +1060,6 @@ class PublicStrategySchema(BaseModel):
         return v
 
 
-
-
 class SingleBacktestRequest(BaseModel):
     strategy_name: str
     params: Dict[str, Any]
@@ -1072,6 +1093,7 @@ class PublicBotPerformanceSchema(BaseModel):
             except json.JSONDecodeError:
                 return {}
         return v
+
 
 class ManualOrderCreate(BaseModel):
     exchange: str
@@ -1116,6 +1138,7 @@ class AdminUserCreate(BaseModel):
     role: UserRole = UserRole.USER
     subscription_plan: SubscriptionPlan = SubscriptionPlan.BASIC
 
+
 class AdminUserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     first_name: Optional[str] = None
@@ -1145,9 +1168,10 @@ class TickerSchema(BaseModel):
     price: float
     change: float
 
+
 class MarketTickerResponseSchema(BaseModel):
     data: Dict[str, TickerSchema]
-    
+
 
 class BotPublishRequest(BaseModel):
     publish_type: BotPublishType
@@ -1174,6 +1198,7 @@ class StrategySubscriptionSchema(BaseModel):
         from_attributes = True
         populate_by_name = True  # Allows using aliases like 'strategy_bot.name'
 
+
 class WebhookPayload(BaseModel):
     """Pydantic model for validating the incoming TradingView alert payload."""
     secret: str
@@ -1189,7 +1214,7 @@ class MT5TradeSignal(BaseModel):
     action: str  # Should be "buy" or "sell"
     price: float
     volume: float
-    order_id: str # The unique order ID from the MT4/5 terminal
+    order_id: str  # The unique order ID from the MT4/5 terminal
 
 
 class ChatRequest(BaseModel):
@@ -1199,7 +1224,7 @@ class ChatRequest(BaseModel):
 
 class SwapQuoteResponse(BaseModel):
     quote_id: str
-    user_id: str # To ensure a user can only execute their own quote
+    user_id: str  # To ensure a user can only execute their own quote
     from_asset: str
     to_asset: str
     amount_in: Decimal
@@ -1208,9 +1233,21 @@ class SwapQuoteResponse(BaseModel):
     fee: Decimal
     expires_at: datetime.datetime
 
+
 # --- NEW: The execute request now only needs the quote ID ---
 class SwapExecuteRequest(BaseModel):
     quote_id: str
+
+
+class NotificationSchema(BaseModel):
+    id: PythonUUID
+    type: NotificationType
+    message: str
+    is_read: bool
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
 
 # ==============================================================================
 # 5. SECURITY & AUTHENTICATION UTILITIES
@@ -1401,41 +1438,6 @@ class CcxtClient(BrokerClient):
         await self._client.close()
 
 
-# --- 3. The OANDA Adapter ---
-class OandaClient(BrokerClient):
-    def __init__(self, api_key: str, account_id: str):
-        self._client = API(access_token=api_key, environment="practice")  # Use "live" for production
-        self._account_id = account_id
-
-    async def fetch_ohlcv(self, symbol: str, timeframe: str, limit: int) -> List[List]:
-        # OANDA uses different timeframe notation (e.g., 'M1' for 1 minute)
-        # and symbol notation (e.g., 'EUR_USD'). A production system would have a mapping utility.
-        params = {'count': limit, 'granularity': 'M1'}
-        # This is a synchronous call, so we run it in an executor to not block the event loop
-        loop = asyncio.get_running_loop()
-        r = await loop.run_in_executor(None, lambda: self._client.get_candles(instrument=symbol, params=params))
-        # Convert OANDA format to CCXT format: [timestamp, open, high, low, close, volume]
-        return [
-            [c['time'], float(c['mid']['o']), float(c['mid']['h']), float(c['mid']['l']), float(c['mid']['c']),
-             c['volume']]
-            for c in r['candles']
-        ]
-
-    async def create_market_order(self, symbol: str, side: str, amount: float, params: Dict = {}):
-        # OANDA uses positive units for long, negative for short
-        units = amount if side == 'buy' else -amount
-        order_request = MarketOrderRequest(instrument=symbol, units=units)
-        loop = asyncio.get_running_loop()
-        r = await loop.run_in_executor(None,
-                                       lambda: self._client.create_order(self._account_id, data=order_request.data))
-        return r  # Return the order confirmation
-
-    async def close(self):
-        # oandapyV20 does not have an explicit close method for its session
-        pass
-
-
-
 class BrokerManager:
     def __init__(self):
         self._public_clients: Dict[str, ccxt.Exchange] = {}
@@ -1444,87 +1446,93 @@ class BrokerManager:
 
     # --- NEW & OVERHAULED: A robust, fault-tolerant client fetcher ---
     async def get_fault_tolerant_public_client(self) -> Optional[ccxt.Exchange]:
-        """
-        Tries to get a shared public client from a prioritized list of exchanges.
-        Cycles through the list until a successful connection is made.
-        """
+        # This method is already correct and robust, no changes needed here.
         async with self._public_lock:
             for exchange_name in self.PUBLIC_DATA_SOURCES:
+                client = None
                 try:
-                    # Try to get an existing client first
                     if exchange_name in self._public_clients:
-                        client = None
-                        # Test if the client is still healthy
                         await self._public_clients[exchange_name].fetch_time()
                         return self._public_clients[exchange_name]
 
-                    # If not existing, create a new one
                     logger.info(f"Attempting to connect to public data source: {exchange_name}")
                     exchange_class = getattr(ccxt, exchange_name)
                     client = exchange_class({'options': {'defaultType': 'spot'}})
-
-                    # The first connection will do a check
-                    await client.load_markets()  # This will raise an error if connection fails
-
+                    await client.load_markets()
                     self._public_clients[exchange_name] = client
-                    logger.info(f"Successfully connected to {exchange_name}. Using as primary data source.")
+                    logger.info(f"Successfully connected to {exchange_name}.")
                     return client
-
-                except (ccxt.NetworkError, ccxt.ExchangeNotAvailable) as e:
+                except (ccxt.NetworkError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as e:
                     logger.warning(f"Failed to connect to {exchange_name}: {e}. Trying next provider.")
-                    # If a client existed but is now unhealthy, remove it
                     if exchange_name in self._public_clients:
                         await self._public_clients[exchange_name].close()
                         del self._public_clients[exchange_name]
                     if client:
-                        await client.close()  # Ensure client is closed on failure
-                    continue  # Move to the next exchange in the list
-
-            logger.error(
-                "!!! CRITICAL: Could not connect to any public data provider. Market data features will be unavailable.")
+                        await client.close()
+                    continue
+            logger.error("!!! CRITICAL: Could not connect to any public data provider.")
             return None
 
-
-    async def get_private_client(self, user_id: str, exchange_name: str, asset_class: AssetClass) -> Optional[ccxt.Exchange]:
+    async def get_private_client(self, user_id: str, exchange_name: str, asset_class: AssetClass) -> Optional[
+        BrokerClient]:
         """
-        Securely creates a new, authenticated broker client instance for a specific user,
-        returning the correct adapter based on the asset class.
+        Securely creates a new, authenticated CCXT broker client for a specific user.
+        This UNIFIED method handles both Crypto and Forex, removing all OANDA-specific logic.
         """
         async with async_session_maker() as db:
             api_key_entry = await db.scalar(
-                select(UserAPIKey).where(UserAPIKey.user_id == user_id, UserAPIKey.exchange == exchange_name,
-                                         UserAPIKey.asset_class == asset_class.value)
+                select(UserAPIKey).where(
+                    UserAPIKey.user_id == user_id,
+                    UserAPIKey.exchange == exchange_name,
+                    # We still check the asset_class to fetch the correct key from the DB
+                    UserAPIKey.asset_class == asset_class.value
+                )
             )
-            if not api_key_entry: return None
+            if not api_key_entry:
+                logger.warning(f"No {asset_class.value} API keys found for user {user_id} on {exchange_name}.")
+                return None
 
             try:
                 api_key = user_service.decrypt_api_key(api_key_entry.api_key_encrypted)
-                secret_key = user_service.decrypt_api_key(
-                    api_key_entry.secret_key_encrypted)  # For OANDA, this is the account ID
+                secret_key = user_service.decrypt_api_key(api_key_entry.secret_key_encrypted)
 
-                if asset_class == AssetClass.CRYPTO:
-                    exchange_class = getattr(ccxt, exchange_name)
-                    client = exchange_class({'apiKey': api_key, 'secret': secret_key, 'enableRateLimit': True})
-                    await client.load_markets()
-                    return CcxtClient(client)
+                # --- UNIFIED LOGIC ---
+                # No more if/elif for asset class. We create a CCXT client for everything.
+                # The user is responsible for providing keys to an exchange that supports
+                # the assets they intend to trade (e.g., Binance Futures for Forex pairs).
 
-                elif asset_class == AssetClass.FOREX:
-                    if exchange_name == 'oanda':
-                        return OandaClient(api_key=api_key, account_id=secret_key)
-                    else:
-                        # Placeholder for other Forex brokers
-                        raise NotImplementedError(f"Forex broker '{exchange_name}' is not supported.")
+                exchange_class = getattr(ccxt, exchange_name)
 
-                else:
-                    raise ValueError(f"Unknown asset class: {asset_class}")
+                # Production-grade: Set the default market type. Many exchanges handle Forex
+                # as futures or derivatives. This can be refined further based on the bot's settings.
+                client_config = {
+                    'apiKey': api_key,
+                    'secret': secret_key,
+                    'enableRateLimit': True,
+                    'options': {
+                        'defaultType': 'future' if asset_class == AssetClass.FOREX else 'spot'
+                    }
+                }
 
+                client = exchange_class(client_config)
+
+                # Verify that the connection and keys are valid by loading markets
+                await client.load_markets()
+
+                # Return the generic CcxtClient adapter, which works for both asset classes
+                return CcxtClient(client)
+
+            except (ccxt.AuthenticationError, ccxt.InvalidNonce) as e:
+                logger.error(f"Authentication failed for user {user_id} on {exchange_name}: {e}")
+                # In a real system, you might want to flag these keys as invalid in the DB.
+                return None
             except Exception as e:
-                logger.error(f"Failed to create private client for {exchange_name}: {e}")
+                logger.error(f"Failed to create private client for {exchange_name} for user {user_id}: {e}",
+                             exc_info=True)
                 return None
 
-
     async def close_all_public(self):
-        """Closes all shared public clients gracefully on application shutdown."""
+        # This method is correct and robust, no changes needed.
         async with self._public_lock:
             for exchange_name, client in self._public_clients.items():
                 try:
@@ -1819,7 +1827,7 @@ class SwapService:
                 )
 
                 # In a real system, you would credit fees to a platform-owned wallet
-                await wallet_service._update_balance(...)
+                # await wallet_service._update_balance(...)
 
             except InsufficientFundsError as e:
                 # If the user's balance changed after getting the quote, this will catch it.
@@ -1837,7 +1845,6 @@ class SwapService:
 
 # Instantiate the service
 swap_service = SwapService()
-
 
 
 class SubscriptionService:
@@ -1864,6 +1871,7 @@ class SubscriptionService:
             )
         )
         return sub is not None
+
 
 subscription_service = SubscriptionService()
 
@@ -2049,9 +2057,9 @@ class TelegramService:
         await self.application.shutdown()
         logger.info("Telegram bot polling stopped.")
 
+
 # Instantiate the service globally
 telegram_service = TelegramService(settings.TELEGRAM_BOT_TOKEN)
-
 
 
 class StrategySubscription(Base):
@@ -2066,7 +2074,6 @@ class StrategySubscription(Base):
 
     subscriber = relationship("User")
     strategy_bot = relationship("TradingBot")
-
 
 
 class MarketRegimeService:
@@ -2155,7 +2162,8 @@ class TradingService:
 
     # --- NEW: Sizing Model Implementations ---
     async def _size_fixed_amount(self, user: User, bot: TradingBot, params: Dict, exchange: ccxt.Exchange) -> Decimal:
-        investment_usd = Decimal(str(params.get("amount_usd"))) if "amount_usd" in params else self.get_dynamic_investment_usd(user)
+        investment_usd = Decimal(
+            str(params.get("amount_usd"))) if "amount_usd" in params else self.get_dynamic_investment_usd(user)
         try:
             ticker = await exchange.fetch_ticker(bot.symbol)
             price = Decimal(str(ticker['last']))
@@ -2237,7 +2245,8 @@ class TradingService:
         plan_multipliers = {
             SubscriptionPlan.BASIC.value: Decimal("1.0"),  # # Basic (Live Trading): 1.0 * $11 = $11 trade sizes
             SubscriptionPlan.PREMIUM.value: Decimal("1.0"),  # # Premium (Live Trading): 1.0 * $11 = $11 trade siz
-            SubscriptionPlan.ULTIMATE.value: Decimal("4.5454545454545455"),  # Ultimate (Live Trading): ~4.545 * $11 = ~$50 trade size
+            SubscriptionPlan.ULTIMATE.value: Decimal("4.5454545454545455"),
+            # Ultimate (Live Trading): ~4.545 * $11 = ~$50 trade size
         }
         # Superusers get a larger default size for testing purposes.
         if user.role == UserRole.SUPERUSER.value:
@@ -2382,7 +2391,6 @@ class TradingService:
 
 
 trading_service = TradingService()
-
 
 
 # --- NEW CLASS: MarketDataStreamer ---
@@ -2784,7 +2792,6 @@ class LLMService:
 llm_service = LLMService(api_key=settings.GOOGLE_GEMINI_API_KEY)
 
 
-
 class PerformanceAnalyticsService:
     async def update_analytics_for_bot(self, db: AsyncSession, bot_id: PythonUUID):
         """
@@ -2870,7 +2877,6 @@ class PerformanceAnalyticsService:
 
 
 performance_analytics_service = PerformanceAnalyticsService()
-
 
 
 class CustodialServiceError(Exception):
@@ -3274,7 +3280,6 @@ class VisualStrategyInterpreter:
         return self._evaluate_node(edge['source'])
 
 
-
 class StrategyService:
     def __init__(self):
         self.strategies = {
@@ -3350,6 +3355,24 @@ class StrategyService:
             await telegram_service.notify_user(user.id, f"▶️ Attempting to start bot `{current_bot.name}`...")
 
             try:
+                # --- ROBUSTNESS FIX: Handle MT4/5 bots explicitly ---
+                if current_bot.exchange in [ExchangeName.MT4.value, ExchangeName.MT5.value]:
+                    current_bot.is_active = True
+                    await db.commit()
+                    setup_message = (
+                        f"🚀 Bot `{current_bot.name}` is now active and listening for MT4/5 signals.\n\n"
+                        f"1. **Endpoint URL:**\n`{settings.BASE_URL}/api/integrations/mt5/trade`\n\n"
+                        f"2. **Bot ID (in payload):**\n`{current_bot.id}`\n\n"
+                        f"3. **Authorization Header:**\n`Bearer YOUR_PLATFORM_API_KEY`\n\n"
+                        f"Configure your MT4/5 bridge or EA to send POST requests with the trade details to this endpoint."
+                    )
+                    await telegram_service.notify_user(user.id, setup_message)
+                    await websocket_manager.send_personal_message(
+                        {"type": "bot_status", "bot_id": str(current_bot.id), "status": "started_external"}, user.id
+                    )
+                    logger.info(f"Activated external MT4/5 bot {current_bot.id}. Waiting for signals.")
+                    return  # IMPORTANT: Exit the function to prevent starting internal processes.
+
                 # --- Logic for Webhook-driven Bots ---
                 if current_bot.strategy_name == "TradingView_Alert":
                     if not current_bot.webhook_id:
@@ -3358,9 +3381,7 @@ class StrategyService:
                     current_bot.is_active = True
                     await db.commit()
 
-                    # Provide the user with the necessary info to configure their alert
-                    # NOTE: Replace 'https://yourdomain.com' with your actual public domain
-                    webhook_url = f"https://quantumleap-ai.onrender.com/api/bots/webhook/{current_bot.webhook_id}"
+                    webhook_url = f"{settings.BASE_URL}/api/bots/webhook/{current_bot.webhook_id}"
                     setup_message = (
                         f"🚀 Bot `{current_bot.name}` is now active and listening for TradingView alerts.\n\n"
                         f"1. **Webhook URL:**\n`{webhook_url}`\n\n"
@@ -3436,7 +3457,7 @@ class StrategyService:
                     await market_streamer.unsubscribe(queue, current_bot.symbol, current_bot.exchange)
                     logger.info(f"Unsubscribed bot {current_bot.id} from market stream.")
 
-            # --- For all bots (including webhook), mark as inactive in the database ---
+            # --- For all bots (including webhook and MT4/5), mark as inactive in the database ---
             current_bot.is_active = False
             await db.commit()
 
@@ -3548,6 +3569,12 @@ class StrategyService:
                 err_msg = f"🛑 Bot `{bot.name}` stopped: Could not connect to {bot.exchange}. Please check your API keys."
                 await telegram_service.notify_user(user.id, err_msg)
                 bot.is_active = False
+                await notification_service.create_notification(
+                    db,
+                    type=NotificationType.BOT_ERROR,
+                    message=f"Bot '{bot.name}' for user {user.email} failed with error: {str(err_msg)[:100]}...",
+                    user_id=user.id
+                )
                 await db.commit()
                 return
 
@@ -3568,12 +3595,18 @@ class StrategyService:
                 elif signal == 'sell':
                     await self._execute_spot_exit(db, user, bot, price, private_client, background_tasks)
             elif bot.market_type == MarketType.FUTURE.value:
-                    await self._execute_future_trade(db, user, bot, signal, price, private_client, background_tasks)
+                await self._execute_future_trade(db, user, bot, signal, price, private_client, background_tasks)
 
         except (ccxt.InsufficientFunds, ccxt.InvalidOrder, ValueError) as e:
             err_msg = f"🛑 Bot `{bot.name}` stopped due to an error on {bot.exchange}: {e}"
             await telegram_service.notify_user(user.id, err_msg)
             bot.is_active = False
+            await notification_service.create_notification(
+                db,
+                type=NotificationType.BOT_ERROR,
+                message=f"Bot '{bot.name}' for user {user.email} failed with error: {str(e)[:100]}...",
+                user_id=user.id
+            )
             await db.commit()
         except ccxt.NetworkError as e:
             err_msg = f"📡 Bot `{bot.name}` has a temporary network issue with {bot.exchange}. It will keep trying."
@@ -3583,12 +3616,19 @@ class StrategyService:
             err_msg = f"🛑 Bot `{bot.name}` stopped due to an unexpected external error."
             await telegram_service.notify_user(user.id, err_msg)
             bot.is_active = False
+            await notification_service.create_notification(
+                db,
+                type=NotificationType.BOT_ERROR,
+                message=f"Bot '{bot.name}' for user {user.email} failed with error: {str(e)[:100]}...",
+                user_id=user.id
+            )
             await db.commit()
         finally:
             if private_client:
                 await private_client.close()
 
-    async def _execute_spot_entry(self, db: AsyncSession, user: User, bot: TradingBot, price: Decimal, client: BrokerClient, background_tasks: BackgroundTasks):
+    async def _execute_spot_entry(self, db: AsyncSession, user: User, bot: TradingBot, price: Decimal,
+                                  client: BrokerClient, background_tasks: BackgroundTasks):
         base_asset, _ = bot.symbol.split('/')
         amount_to_trade = await trading_service.get_position_size(user, bot, client)
         if amount_to_trade <= 0: return
@@ -3608,13 +3648,14 @@ class StrategyService:
             sl_price = entry_price * (1 - bot.stop_loss_percentage / 100)
             params = {'stopPrice': sl_price}
             exit_order = await client.create_order(symbol=bot.symbol, type='oco', side='sell', amount=amount_filled,
-                                                     price=tp_price, params=params)
+                                                   price=tp_price, params=params)
             bot.active_exit_order_id = exit_order['id']
             await db.commit()
             tp_sl_msg = f"🛡️ Bot `{bot.name}`: TP set at `${tp_price:.2f}` and SL at `${sl_price:.2f}`."
             await telegram_service.notify_user(user.id, tp_sl_msg)
 
-    async def _execute_spot_exit(self, db: AsyncSession, user: User, bot: TradingBot, price: Decimal, client: BrokerClient, background_tasks: BackgroundTasks):
+    async def _execute_spot_exit(self, db: AsyncSession, user: User, bot: TradingBot, price: Decimal,
+                                 client: BrokerClient, background_tasks: BackgroundTasks):
         if bot.active_exit_order_id:
             try:
                 await client.cancel_order(bot.active_exit_order_id, bot.symbol)
@@ -3675,8 +3716,10 @@ class StrategyService:
                 bot.active_position_entry_price = float(new_position['entryPrice'])
                 await db.commit()
             await telegram_service.notify_user(user.id,
-                                               f"🚀 *Futures Position Opened*\nBot: `{bot.name}` ({position_type} @ {bot.leverage}x).")    # --- NEW: The runner for all visual strategies ---
-    async def run_visual_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue, background_tasks: BackgroundTasks):
+                                               f"🚀 *Futures Position Opened*\nBot: `{bot.name}` ({position_type} @ {bot.leverage}x).")  # --- NEW: The runner for all visual strategies ---
+
+    async def run_visual_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue,
+                                  background_tasks: BackgroundTasks):
         from collections import deque
         historical_candles = deque(maxlen=250)  # Use a larger buffer for visual strategies
 
@@ -3713,7 +3756,8 @@ class StrategyService:
                     async with async_session_maker() as db:
                         current_bot = await db.get(TradingBot, bot.id)
                         if not current_bot or not current_bot.is_active: break
-                        await self.execute_bot_trade(db, user, current_bot, signal, Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, signal, Decimal(str(kline['c'])),
+                                                     background_tasks)
 
         except asyncio.CancelledError:
             logger.info(f"Visual bot {bot.id} task was cancelled.")
@@ -3805,10 +3849,12 @@ class StrategyService:
                                     {"type": "bot_log", "bot_id": str(bot.id), "message": log_msg}, user.id)
                                 continue  # Skip trade
 
-                        await self.execute_bot_trade(db, user, current_bot, 'buy', Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, 'buy', Decimal(str(kline['c'])),
+                                                     background_tasks)
 
                     elif sell_signal and in_position:
-                        await self.execute_bot_trade(db, user, current_bot, 'sell', Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, 'sell', Decimal(str(kline['c'])),
+                                                     background_tasks)
                 previous_macd_hist_state = current_macd_hist_state
         except asyncio.CancelledError:
             logger.info(f"RSI/MACD bot {bot.id} task was cancelled.")
@@ -3818,7 +3864,8 @@ class StrategyService:
                 await self.stop_bot(db, bot)
 
     # --- STRATEGY 2: Moving Average Crossover ---
-    async def run_ma_cross_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue, background_tasks: BackgroundTasks):
+    async def run_ma_cross_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue,
+                                    background_tasks: BackgroundTasks):
         params = json.loads(bot.strategy_params)
         short_window, long_window = params.get('short_window', 50), params.get('long_window', 200)
         from collections import deque
@@ -3884,10 +3931,12 @@ class StrategyService:
                                     {"type": "bot_log", "bot_id": str(bot.id), "message": log_msg}, user.id)
                                 continue  # Skip trade
 
-                        await self.execute_bot_trade(db, user, current_bot, 'buy', Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, 'buy', Decimal(str(kline['c'])),
+                                                     background_tasks)
 
                     elif sell_signal and in_position:
-                        await self.execute_bot_trade(db, user, current_bot, 'sell', Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, 'sell', Decimal(str(kline['c'])),
+                                                     background_tasks)
 
         except asyncio.CancelledError:
             logger.info(f"MA Cross bot {bot.id} task was cancelled.")
@@ -3898,7 +3947,8 @@ class StrategyService:
 
     # --- STRATEGY 3: Bollinger Bands ---
 
-    async def run_bollinger_bands_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue, background_tasks: BackgroundTasks):
+    async def run_bollinger_bands_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue,
+                                           background_tasks: BackgroundTasks):
         params = json.loads(bot.strategy_params)
         window, std_dev = params.get('window', 20), params.get('std_dev', 2.0)
         from collections import deque
@@ -3957,11 +4007,13 @@ class StrategyService:
                                     {"type": "bot_log", "bot_id": str(bot.id), "message": log_msg}, user.id)
                                 continue  # Skip trade
 
-                        await self.execute_bot_trade(db, user, current_bot, 'buy', Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, 'buy', Decimal(str(kline['c'])),
+                                                     background_tasks)
 
                     elif sell_signal and in_position:
                         # For mean reversion, we can also use the middle band (SMA) as an exit signal
-                        await self.execute_bot_trade(db, user, current_bot, 'sell', Decimal(str(kline['c'])), background_tasks)
+                        await self.execute_bot_trade(db, user, current_bot, 'sell', Decimal(str(kline['c'])),
+                                                     background_tasks)
 
         except asyncio.CancelledError:
             logger.info(f"Bollinger Bands bot {bot.id} task was cancelled.")
@@ -3971,7 +4023,8 @@ class StrategyService:
                 await self.stop_bot(db, bot)
 
     # --- STRATEGY 4: Smart Money Concepts ---
-    async def run_smc_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue, background_tasks: BackgroundTasks):
+    async def run_smc_strategy(self, user: User, bot: TradingBot, data_queue: asyncio.Queue,
+                               background_tasks: BackgroundTasks):
         from collections import deque
         historical_candles = deque(maxlen=200)
 
@@ -4171,6 +4224,36 @@ async def broadcast_market_data():
         await asyncio.sleep(20)  # Increased sleep time slightly for stability
 
 
+
+class NotificationService:
+    async def create_notification(
+        self,
+        db: AsyncSession,
+        type: NotificationType,
+        message: str,
+        user_id: Optional[str] = None
+    ):
+        """
+        Creates and saves a new system notification. This is the central point
+        for all notification generation in the application.
+        """
+        try:
+            notification = Notification(
+                type=type.value,
+                message=message,
+                user_id=user_id
+            )
+            db.add(notification)
+            # The commit will be handled by the calling function's transaction
+            await db.flush()
+            logger.info(f"Created notification: '{type.value}' - '{message}'")
+        except Exception as e:
+            # We log the error but don't raise an exception. A failed notification
+            # should never cause the parent operation (like a payment) to fail.
+            logger.error(f"Failed to create notification: {e}", exc_info=True)
+
+# --- Instantiate the service globally ---
+notification_service = NotificationService()
 # ==============================================================================
 # 7. FASTAPI LIFESPAN MANAGER & APP SETUP
 # ==============================================================================
@@ -4285,13 +4368,12 @@ users_router = APIRouter(prefix="/api/users", tags=["Users"])
 bots_router = APIRouter(prefix="/api/bots", tags=["Trading Bots"])
 market_router = APIRouter(prefix="/api/market", tags=["Market Data & AI"])
 payments_router = APIRouter(prefix="/api/payments", tags=["Payments & Subscriptions"])
-superuser_router = APIRouter(prefix="/api/superuser", tags=["Superuser"])
+superuser_router = APIRouter(prefix="/api/superuser", tags=["Superuser"], dependencies=[Depends(get_current_superuser)])
 wallet_router = APIRouter(prefix="/api/wallet", tags=["Wallet & Swapping"])
 strategies_router = APIRouter(prefix="/api/strategies", tags=["Strategy Marketplace"])
 public_router = APIRouter(prefix="/api/public", tags=["Public API"])
 trading_router = APIRouter(prefix="/api/trading", tags=["Manual Trading"])
 integrations_router = APIRouter(prefix="/api/integrations", tags=["Integrations"])
-
 
 
 # ==============================================================================
@@ -4570,7 +4652,7 @@ async def get_swap_quote_endpoint(
 
 @wallet_router.post("/swap/execute", response_model=SwapExecuteResponse)
 async def execute_swap_endpoint(
-        request: SwapExecuteRequest, # Changed to the new request model
+        request: SwapExecuteRequest,  # Changed to the new request model
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
 ):
@@ -4584,9 +4666,17 @@ async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db
         new_user = User(id=firebase_user.uid, email=firebase_user.email, role=UserRole.USER.value,
                         subscription_plan=SubscriptionPlan.BASIC.value)
         db.add(new_user)
-        await db.commit()
+        await notification_service.create_notification(
+            db,
+            type=NotificationType.NEW_USER,
+            message=f"New user signed up: {user_data.email}",
+            user_id=new_user.id
+        )
+
+        await db.commit()  # Commit the notification along with the new user
         await db.refresh(new_user)
         user_dict = UserSchema.from_orm(new_user).model_dump()
+
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
             content={
@@ -5080,7 +5170,7 @@ async def create_trading_bot(bot_data: TradingBotCreate, current_user: User = De
         name=bot_data.name,
         owner_id=current_user.id,
         symbol=bot_data.symbol.upper(),
-        exchange=bot_data.exchange.lower(),
+        exchange=bot_data.exchange.value,  # Save the enum's value
         is_paper_trading=bot_data.is_paper_trading,
 
         # Strategy fields
@@ -5132,7 +5222,8 @@ async def get_bot_details(bot_id: PythonUUID, current_user: User = Depends(get_c
 
 
 @bots_router.post("/{bot_id}/start")
-async def start_user_bot(bot_id: PythonUUID,  background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user),
+async def start_user_bot(bot_id: PythonUUID, background_tasks: BackgroundTasks,
+                         current_user: User = Depends(get_current_user),
                          db: AsyncSession = Depends(get_db)):
     bot = await db.get(TradingBot, bot_id)
     if not bot or bot.owner_id != current_user.id: raise HTTPException(status_code=404, detail="Bot not found")
@@ -5172,6 +5263,7 @@ async def get_bot_trade_logs(bot_id: PythonUUID, current_user: User = Depends(ge
     logs = result.scalars().all()
     return logs
 
+
 @bots_router.post("/webhook/{webhook_id}")
 async def tradingview_webhook(webhook_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     """
@@ -5198,11 +5290,11 @@ async def tradingview_webhook(webhook_id: str, request: Request, db: AsyncSessio
         # Handle cases where TradingView might send plain text
         alert_data = {"raw": await request.body()}
 
-
     # 4. Trigger the webhook strategy execution
     await strategy_service.run_webhook_strategy(user, bot, alert_data)
 
     return {"status": "ok"}
+
 
 @trading_router.post("/orders", response_model=OpenOrderSchema)
 async def place_manual_order(
@@ -5215,7 +5307,8 @@ async def place_manual_order(
     """
     private_exchange = None
     try:
-        private_exchange = await broker_manager.get_private_client(current_user.id, order_data.exchange, order_data.asset_class)
+        private_exchange = await broker_manager.get_private_client(current_user.id, order_data.exchange,
+                                                                   order_data.asset_class)
         if not private_exchange:
             raise HTTPException(status_code=400, detail="Exchange not connected or API keys are invalid.")
 
@@ -5290,9 +5383,7 @@ async def get_public_bot_performance(
         bot_id: PythonUUID,
         db: AsyncSession = Depends(get_db)
 ):
-    """
-    Fetches the performance data for a single, publicly shared bot.
-    This endpoint does not require authentication.
+    """Fetches the performance data for a single, publicly shared bot.    This endpoint does not require authentication.
     """
     # Eagerly load the trade logs associated with the bot
     result = await db.execute(
@@ -5409,7 +5500,6 @@ async def publish_bot_to_marketplace(
     if not bot or bot.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Bot not found")
 
-    bot.is_public = request.is_public
     bot.description = request.description
     bot.backtest_results_cache = json.dumps(request.backtest_results)
 
@@ -5423,7 +5513,8 @@ async def publish_bot_to_marketplace(
 
     await db.commit()
     await db.refresh(bot)
-    return bot
+    # Correctly re-validate the updated bot object before returning
+    return TradingBotSchema.model_validate(bot)
 
 
 @strategies_router.post("/{bot_id}/clone", response_model=TradingBotSchema)
@@ -5756,6 +5847,11 @@ async def log_mt5_trade(
     if not bot or bot.owner_id != user.id:
         raise HTTPException(status_code=404, detail="Bot not found or not owned by this user.")
 
+    # --- ROBUSTNESS FIX: Verify this signal is for an MT5-configured bot ---
+    if bot.exchange not in [ExchangeName.MT4.value, ExchangeName.MT5.value]:
+        logger.warning(f"MT5 signal received for bot {bot.id}, but it is not configured as an MT4/5 bot. Ignoring.")
+        raise HTTPException(status_code=400, detail="This bot is not configured for MT4/5 signals.")
+
     if not bot.is_active:
         logger.warning(f"MT5 trade signal received for inactive bot {bot.id}. Ignoring.")
         return {"status": "ignored_inactive_bot"}
@@ -5764,7 +5860,7 @@ async def log_mt5_trade(
     trade = TradeLog(
         user_id=user.id,
         bot_id=bot.id,
-        exchange="mt5",  # Mark the trade as originating from MT5
+        exchange=bot.exchange,  # Log the specific exchange (mt4 or mt5)
         symbol=signal.symbol,
         order_id=signal.order_id,
         side=signal.action.lower(),
@@ -5785,7 +5881,7 @@ async def log_mt5_trade(
 
     # Send real-time notifications
     base_asset = signal.symbol[:3]
-    msg = f"📈 *Trade Logged via MT5*\nBot: `{bot.name}`\n{signal.action.upper()} `{signal.volume}` `{base_asset}` at `{signal.price}`"
+    msg = f"📈 *Trade Logged via {bot.exchange.upper()}*\nBot: `{bot.name}`\n{signal.action.upper()} `{signal.volume}` `{base_asset}` at `{signal.price}`"
     background_tasks.add_task(telegram_service.notify_user, user.id, msg)
 
     trade_schema = TradeLogSchema.model_validate(trade)
@@ -5830,11 +5926,11 @@ class PaymentService:
         if not auth_token: raise HTTPException(status_code=500, detail="Could not authenticate with PayPal.")
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {auth_token}"}
         payload = {"intent": "CAPTURE", "purchase_units": [{"reference_id": reference,
-                                                            "amount": {"currency_code": price_info['currency'],
-                                                                       "value": str(price_info['price'])},
-                                                            "description": f"QuantumLeap {plan.value.capitalize()} Plan"}],
-                   "application_context": {"return_url": "http://localhost:3000/dashboard/billing?status=success",
-                                           "cancel_url": "http://localhost:3000/dashboard/billing?status=cancelled",
+                                                            "amount": {"currency_code": "USD",
+                                                                       "value": str(amount)},
+                                                            "description": description}],
+                   "application_context": {"return_url": f"{settings.BASE_URL}/dashboard/billing?status=success",
+                                           "cancel_url": f"{settings.BASE_URL}/dashboard/billing?status=cancelled",
                                            "brand_name": "QuantumLeap AI Trader", "user_action": "PAY_NOW"}}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{settings.PAYPAL_API_BASE}/v2/checkout/orders", headers=headers,
@@ -5868,7 +5964,7 @@ class PaymentService:
         headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
         amount_in_cents = int(price_info['price'] * 100)
         payload = {"email": user.email, "amount": amount_in_cents, "currency": price_info['currency'],
-                   "reference": reference, "callback_url": "http://localhost:3000/dashboard/billing"}
+                   "reference": reference, "callback_url": f"{settings.BASE_URL}/dashboard/billing"}
         async with aiohttp.ClientSession() as session:
             async with session.post("https://api.paystack.co/transaction/initialize", headers=headers,
                                     json=payload) as resp:
@@ -5878,7 +5974,7 @@ class PaymentService:
                     raise HTTPException(status_code=500, detail="Failed to initiate Paystack payment.")
                 data = await resp.json()
         payment_data = data['data']
-        await self._create_payment_record(db, user.id, reference, plan, 'paystack')
+        await self._create_payment_record(db, user.id, reference, price_info['price'], price_info['currency'], 'paystack', plan.value)
         return PaymentInitResponse(payment_url=payment_data['authorization_url'], reference=reference,
                                    gateway='paystack')
 
@@ -5889,11 +5985,18 @@ class PaymentService:
             return
         user.subscription_plan = plan.value
         user.subscription_expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=31)
+        await notification_service.create_notification(
+            db,
+            type=NotificationType.PAYMENT_SUCCESS,
+            message=f"User {user.email} successfully subscribed to the {plan.plan_purchased} plan via PayPal.",
+            user_id=user.id
+        )
+
         await db.commit()
         await db.refresh(user)
         logger.info(f"Subscription for user {user.id} upgraded to {plan.value}.")
         await websocket_manager.send_personal_message(
-            {"type": "subscription_update", "profile": UserSchema.from_orm(user).model_dump()}, user.id)
+            {"type": "subscription_update", "profile": UserSchema.model_validate(user).model_dump()}, user.id)
 
 
 payment_service = PaymentService()
@@ -6132,6 +6235,17 @@ async def update_user_by_superuser(
     # Eager load the profile for the response
     result = await db.execute(select(User).options(selectinload(User.profile)).where(User.id == user.id))
     return result.scalar_one()
+
+@superuser_router.get("/notifications", response_model=List[NotificationSchema])
+async def get_superuser_notifications(db: AsyncSession = Depends(get_db)):
+    """
+    Fetches the most recent system-wide notifications for the superuser dashboard.
+    """
+    result = await db.execute(
+        select(Notification).order_by(Notification.created_at.desc()).limit(20)
+    )
+    notifications = result.scalars().all()
+    return notifications
 # ==============================================================================
 # WEBSOCKET and ROUTER SETUP
 # ==============================================================================
@@ -6187,12 +6301,12 @@ app.include_router(integrations_router)
 # This block is only for direct execution, not for Uvicorn
 if __name__ == "__main__":
     import uvicorn
+    import gunicorn
+
 
     logger.warning("Running in debug mode. Do not use for production.")
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    #uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
     # uvicorn main:app --reload
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
-
-
-
+    # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level

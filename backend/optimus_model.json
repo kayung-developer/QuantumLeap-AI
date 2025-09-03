@@ -1,0 +1,107 @@
+{
+  "learner": {
+    "attributes": {},
+    "feature_names": [],
+    "feature_types": [],
+    "gradient_booster": {
+      "model": {
+        "gbtree_model_param": {
+          "num_trees": "1",
+          "size_leaf_vector": "0"
+        },
+        "trees": [
+          {
+            "base_weights": [
+              -0.0916659981,
+              0.100000001
+            ],
+            "id": 0,
+            "left_children": [
+              1,
+              3,
+              -1,
+              5,
+              -1,
+              -1
+            ],
+            "loss_changes": [
+              255.451004,
+              142.12291,
+              65.8955002,
+              5.76280022,
+              7.125,
+              2.0156002
+            ],
+            "parents": [
+              2147483647,
+              0,
+              0,
+              1,
+              1,
+              3
+            ],
+            "right_children": [
+              2,
+              4,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "split_conditions": [
+              0,
+              0,
+              0,
+              0.089400001,
+              0.089400001,
+              0.089400001
+            ],
+            "split_indices": [
+              15,
+              2,
+              0,
+              1,
+              0,
+              0
+            ],
+            "split_type": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "sum_hessian": [
+              1250,
+              640.800049,
+              609.200012,
+              322.399994,
+              318.399994,
+              232
+            ],
+            "tree_param": {
+              "num_deleted_nodes": "0",
+              "num_feature": "21",
+              "num_nodes": "7",
+              "size_leaf_vector": "0"
+            }
+          }
+        ],
+        "trees_to_update": []
+      },
+      "name": "gbtree"
+    },
+    "objective": {
+      "name": "binary:logistic",
+      "reg_loss_param": {
+        "scale_pos_weight": "1"
+      }
+    }
+  },
+  "version": [
+    1,
+    6,
+    0
+  ]
+}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://quantumleap-ai.onrender.com/api', // Your FastAPI backend URL
+  baseURL: `${process.env.REACT_APP_API_BASE_URL}/api`, // Your FastAPI backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -70,3 +70,4 @@ export const getErrorMessage = (error) => {
 
 
 export default axiosInstance;
+

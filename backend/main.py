@@ -4403,7 +4403,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="QuantumLeap AI Trader",
               description="A Real-Time AI Trading System with Bot Automation and Market Analysis.", version="1.0.0",
               lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_credentials=True, allow_methods=["*"],
+app.add_middleware(CORSMiddleware, allow_origins=["https://quantum-leap-ai-two.vercel.app"], allow_credentials=True, allow_methods=["*"],
                    allow_headers=["*"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -6355,6 +6355,7 @@ if __name__ == "__main__":
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
     # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level
+
 
 
 

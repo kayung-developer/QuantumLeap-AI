@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://quantumleapai.onrender.com/api', // Your FastAPI backend URL http://localhost:8000
+  baseURL: 'https://quantumleap.onrender.com/api', // Your FastAPI backend URL http://localhost:8000
   headers: {
     'Content-Type': 'application/json',
   },
@@ -95,6 +95,7 @@ export const getErrorMessage = (error) => {
       return error.message || "An unknown error occurred.";
     }
 };
+
 
 
 export default axiosInstance;

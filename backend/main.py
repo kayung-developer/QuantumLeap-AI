@@ -2066,7 +2066,7 @@ class TelegramService:
         await self.application.updater.start_polling()
 
     async def stop_polling(self):
-        if self.application.updater and self.application.updater.is_running:
+        if self.application.updater and self.application.updater._running:
             await self.application.updater.stop()
         await self.application.stop()
         await self.application.shutdown()
@@ -4195,6 +4195,7 @@ async def broadcast_market_data():
     while True:
         tickers = {}
         data_source = "Unknown"
+        exchange = None
 
         try:
             # --- PRIMARY METHOD: Try to use the fast, direct CCXT exchange APIs first ---
@@ -4202,8 +4203,22 @@ async def broadcast_market_data():
 
             if exchange:
                 data_source = exchange.id
-                tickers = await exchange.fetch_tickers(all_symbols)
+                async def fetch_safe(symbol):
+                    try:
+                        return await exchange.fetch_ticker(symbol)
+                    except ccxt.BadSymbol:
+                        logger.debug(f"Symbol {symbol} not found on {exchange.id}. Skipping.")
+                    except Exception as e:
+                        logger.warning(f"Could not fetch ticker for {symbol} on {exchange.id}: {e}")
+                    return None
+
+                results = await asyncio.gather(*(fetch_safe(s) for s in all_symbols))
+                
+                for res in results:
+                    if res and res.get('symbol'):
+                        tickers[res['symbol']] = res
             else:
+                
                 # --- FALLBACK METHOD: If all CCXT exchanges fail, use TradingView ---
                 logger.warning("All CCXT exchange connections failed. Falling back to TradingView for market data.")
                 data_source = "TradingView"
@@ -4234,7 +4249,10 @@ async def broadcast_market_data():
 
         except Exception as e:
             logger.error(f"An unexpected critical error occurred in broadcast_market_data: {e}", exc_info=True)
-
+        finally:
+            # Ensure the public client is closed to prevent session leaks
+            if exchange:
+                await exchange.close()
         # Wait for the next cycle
         await asyncio.sleep(20)  # Increased sleep time slightly for stability
 
@@ -6337,6 +6355,7 @@ if __name__ == "__main__":
     #uvicorn main:app --port 8000
     #venv\Scripts\activate
     # gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app ---------- For Production level
+
 
 
 

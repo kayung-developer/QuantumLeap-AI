@@ -1,0 +1,43 @@
+{
+  "AWSEBDockerrunVersion": 2,
+  "containerDefinitions": [
+    {
+      "name": "web-server",
+      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_REGION.amazonaws.com/quantumleap-backend:latest",
+      "essential": true,
+      "memory": 512,
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "containerPort": 8000
+        }
+      ],
+      "command": [
+        "gunicorn",
+        "-w", "4",
+        "-k", "uvicorn.workers.UvicornWorker",
+        "app.main:app",
+        "--bind", "0.0.0.0:8000"
+      ],
+      "environment": [
+        {"name": "IS_WEB_WORKER", "value": "1"}
+      ]
+    },
+    {
+      "name": "celery-worker",
+      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_REGION.amazonaws.com/quantumleap-backend:latest",
+      "essential": true,
+      "memory": 1024,
+      "command": [
+        "celery",
+        "-A", "app.celery_worker",
+        "worker",
+        "-l", "info",
+        "-Q", "long_running,high_priority,default"
+      ],
+      "environment": [
+        {"name": "IS_CELERY_WORKER", "value": "1"}
+      ]
+    }
+  ]
+}

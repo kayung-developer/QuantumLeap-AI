@@ -1,4 +1,4 @@
-# Use a stable, slim Python runtime as the base image
+# Use a stable, slim Python runtime
 FROM python:3.11-slim
 
 # Set the working directory inside the container
@@ -8,14 +8,10 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install system dependencies, including supervisor
+# Install system dependencies, including supervisor for process management
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential supervisor
 
-# --- THIS IS THE CRITICAL FIX ---
-# All COPY paths must now be prefixed with `backend/` because that's where the files
-# are located relative to this Dockerfile in your Git repository.
-
-# Copy the requirements file from the 'backend' subdirectory.
+# Copy the requirements file from the 'backend' subdirectory in the build context.
 COPY backend/requirements.txt .
 
 # Install all Python dependencies
@@ -27,11 +23,12 @@ COPY backend/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Copy the pre-downloaded NLTK data from the 'backend' subdirectory.
 COPY backend/nltk_data/ /app/nltk_data/
 
-# Copy the application code from the 'backend/app' subdirectory.
-COPY backend/app/ /app/app/
+# Copy the entire backend application code into the container.
+COPY backend/ /app/
 
-# Expose the port the app will run on
+# Expose the port for the web server (read by supervisor)
 EXPOSE ${PORT:-8000}
 
-# The CMD to run supervisor. This does not need to change as it uses paths inside the container.
+# The main command for the container is to run supervisor.
+# It will start Gunicorn and the Celery worker based on the .conf file.
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

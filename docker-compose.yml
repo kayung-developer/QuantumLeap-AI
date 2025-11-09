@@ -1,0 +1,84 @@
+# /quantumleap_ai_trader/docker-compose.yml
+# The "version: '3.8'" line has been removed from the top.
+
+services:
+  # --- Backend API Service (FastAPI) ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quantumleap_backend
+    command: gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app -b 0.0.0.0:8000
+    volumes:
+      # Mount the current directory into the container's /app directory.
+      # This is great for development, as changes in your code are reflected
+      # instantly in the container without rebuilding the image.
+      # For production, you might remove this to have an immutable container.
+      - .:/app
+    ports:
+      # Map port 8000 of the container to port 8000 on the host machine.
+      - "8000:8000"
+    env_file:
+      # Load environment variables from the .env file.
+      - ./.env
+    depends_on:
+      # Ensure that the database and redis services start before the backend.
+      - db
+      - redis
+
+  # --- Database Service (PostgreSQL) ---
+  db:
+    image: postgres:15-alpine
+    container_name: quantumleap_db
+    volumes:
+      # Persist PostgreSQL data in a named volume. This ensures your data
+      # is not lost when the container is stopped or removed.
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      # Map port 5432 of the container to port 5432 on the host machine.
+      - "5432:5432"
+    environment:
+      # These variables are used by the postgres image to initialize the database.
+      # MAKE SURE these match the values in your .env file for the backend to connect.
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin # Change this to match your .env
+      - POSTGRES_DB=quantumleap
+
+  # --- Message Broker Service (Redis) for Celery ---
+  redis:
+    image: redis:7-alpine
+    container_name: quantumleap_redis
+    ports:
+      # Map Redis port 6379 to the host.
+      - "6379:6379"
+
+  # --- Celery Worker Service ---
+  celery_worker:
+    build: .
+    container_name: quantumleap_celery_worker
+    command: celery -A celery_config.celery_app worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - backend # Depends on the same code and environment
+      - redis   # Must connect to the redis broker
+
+  # --- Celery Beat Scheduler Service ---
+  celery_beat:
+    build: .
+    container_name: quantumleap_celery_beat
+    command: celery -A celery_config.celery_app beat -l info
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+      - redis
+
+# --- Named Volumes Definition ---
+# This is where Docker Compose is instructed to create the persistent volume for our database.
+volumes:
+  postgres_data:

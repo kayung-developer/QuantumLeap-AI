@@ -8,22 +8,24 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install system dependencies (e.g., for PostgreSQL client)
-RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev build-essential
+# Install system dependencies (supervisor and build tools)
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential supervisor
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
-# Use a virtual environment inside the container for cleaner dependency management
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire application code
+# Copy the pre-downloaded NLTK data
+COPY nltk_data/ /app/nltk_data/
+
+# Copy the supervisor configuration file
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy the entire application code from the current directory
 COPY . .
 
-# Make the entrypoint script executable
-COPY entrypoint.sh .
-RUN chmod +x ./entrypoint.sh
+# Expose the port for the web server (read by supervisor)
+EXPOSE ${PORT:-8000}
 
-# This entrypoint script will run when the container starts
-ENTRYPOINT ["./entrypoint.sh"]
+# The main command for the container is to run supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

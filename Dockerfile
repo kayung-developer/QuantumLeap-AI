@@ -1,34 +1,29 @@
 # Use a stable, slim Python runtime
 FROM python:3.11-slim
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
 # Set environment variables for best practices
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install system dependencies, including supervisor for process management
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential supervisor
+# Install system dependencies (e.g., for PostgreSQL client)
+RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev build-essential
 
-# Copy the requirements file from the 'backend' subdirectory in the build context.
-COPY backend/requirements.txt .
-
-# Install all Python dependencies
+# Copy requirements and install dependencies
+COPY requirements.txt .
+# Use a virtual environment inside the container for cleaner dependency management
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the supervisor configuration file from the 'backend' subdirectory.
-COPY backend/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy the entire application code
+COPY . .
 
-# Copy the pre-downloaded NLTK data from the 'backend' subdirectory.
-COPY backend/nltk_data/ /app/nltk_data/
+# Make the entrypoint script executable
+COPY entrypoint.sh .
+RUN chmod +x ./entrypoint.sh
 
-# Copy the entire backend application code into the container.
-COPY backend/ /app/
-
-# Expose the port for the web server (read by supervisor)
-EXPOSE ${PORT:-8000}
-
-# The main command for the container is to run supervisor.
-# It will start Gunicorn and the Celery worker based on the .conf file.
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# This entrypoint script will run when the container starts
+ENTRYPOINT ["./entrypoint.sh"]

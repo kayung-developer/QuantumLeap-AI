@@ -1,21 +1,8 @@
-# IDE & OS
-.idea/
-.vscode/
-*.DS_Store
-
-# Python
-backend/venv/
-backend/__pycache__/
-backend/app/__pycache__/
-backend/*.db
-backend/*.sqlite3
-
-# Node
-frontend/node_modules/
-frontend/build/
-mobile/node_modules/
-
-# Secrets
+__pycache__/
+*.pyc
 .env
-backend/.env
-firebase-credentials.json
+venv/
+.git/
+.idea/
+*.db
+*.sqlite3

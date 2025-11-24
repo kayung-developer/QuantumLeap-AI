@@ -49,6 +49,8 @@ QuantumLeap AI is more than just a trading bot; it's a complete financial comman
 
 ## 📸 Platform Screenshots
 
+Gallery Images can be found <a href="https://quantumleap-images.vercel.app">here</a>
+
 <table width="100%">
   <tr>
     <td width="50%" align="center">
@@ -84,7 +86,6 @@ QuantumLeap AI is more than just a trading bot; it's a complete financial comman
 </table>
 
 <br/>
-## Gallery Images can be found <a href="https://quantumleap-images.vercel.app">here</a>
 
 ## 🛠️ Tech Stack & Architecture
 
@@ -163,6 +164,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - **Email:** aondoverpascaloryiman@gmail.com
 
 ```
+
 
 
 

@@ -23,7 +23,7 @@ QuantumLeap AI Trader is a comprehensive, open-source platform designed to bring
 <br/>
 
 <div align="center">
-  <img src="screenshots/Dashboard-light.png" alt="QuantumLeap Dashboard" width="800px" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" />
+  <img src="screenshots/Dashboard-light.PNG" alt="QuantumLeap Dashboard" width="800px" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" />
   <p><em>Main Dashboard showing Portfolio Overview and Real-Time Market Data</em></p>
 </div>
 
@@ -52,21 +52,21 @@ QuantumLeap AI is more than just a trading bot; it's a complete financial comman
 <table width="100%">
   <tr>
     <td width="50%" align="center">
-      <img src="screenshots/StrategyBuilder-Light.png" alt="Visual Strategy Builder" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+      <img src="screenshots/StrategyBuilder-Light.PNG" alt="Visual Strategy Builder" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
       <p><em>The intuitive, node-based <strong>Visual Strategy Builder</strong>.</em></p>
     </td>
     <td width="50%" align="center">
-      <img src="screenshots/StrategyLab-Light.png" alt="Strategy Laboratory" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+      <img src="screenshots/StrategyLab-Light.PNG" alt="Strategy Laboratory" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
       <p><em>The <strong>Strategy Lab</strong>, showing backtest optimization results and the AI Sensei.</em></p>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
-      <img src="screenshots/Wallet-Light.png" alt="Wallet Page" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+      <img src="screenshots/Wallet-Light.PNG" alt="Wallet Page" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
       <p><em>The unified <strong>Wallet Page</strong>, displaying both custodial and non-custodial (MT5) balances.</em></p>
     </td>
     <td width="50%" align="center">
-      <img src="screenshots/Bots-light.png" alt="My Bots Page" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+      <img src="screenshots/Bots-light.PNG" alt="My Bots Page" style="border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
       <p><em>The <strong>My Bots</strong> page for managing and deploying trading strategies.</em></p>
     </td>
   </tr>
@@ -151,3 +151,4 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - **Email:** aondoverpascaloryiman@gmail.com
 
 ```
+

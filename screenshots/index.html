@@ -79,6 +79,7 @@
             font-weight: bold;
             transform: translateY(100%);
             transition: transform 0.3s ease;
+            text-transform: capitalize;
         }
 
         .swiper-slide:hover .caption {
@@ -116,32 +117,56 @@
     <div class="swiper mySwiper">
         <div class="swiper-wrapper">
             <!-- Web Images -->
-            <div class="swiper-slide"><img src="https://i.ibb.co/W4ZrGKqN/Bots-light.png"><div class="caption">Bots Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/gbcLg0Z2/Bots.png"><div class="caption">Bots Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/fPt0Zwg/Dashboard-light.png"><div class="caption">Dashboard Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/v6DwWrh5/Dashboard.png"><div class="caption">Dashboard Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/wNKZX4Fw/Home.png"><div class="caption">Home</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/8g3L444h/Integrations.png"><div class="caption">Integrations</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/m5sW8dy7/Market-Place-Light.png"><div class="caption">MarketPlace Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/Q3tSGvRD/Market-Place.png"><div class="caption">MarketPlace Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/pr2Mdvmg/Publish-Strategy.png"><div class="caption">Publish Strategy</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/CSHgbK1/Strategy-Builder-Light.png"><div class="caption">Builder Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/93qTbY5C/Strategy-Builder.png"><div class="caption">Builder Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/r2LmMNYv/Strategy-Lab-Light.png"><div class="caption">Lab Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/whTqSKR7/Strategy-Lab.png"><div class="caption">Lab Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/RF4P80v/Trade-History.png"><div class="caption">Trade History</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/cK6PrkbF/Wallet-Light.png"><div class="caption">Wallet Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/hxvDfV8G/Wallets.png"><div class="caption">Wallet Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/VcbWFTKT/apikeys.png"><div class="caption">API Keys</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/Ng3w5qYz/billing-light.png"><div class="caption">Billing Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/FkVt7KkT/billing.png"><div class="caption">Billing Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/S4d8ZjGh/bot-analysis.png"><div class="caption">Bot Analysis</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/9k5WxVts/botdetails-light.png"><div class="caption">Bot Details Light</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/FpZ6h8d/botdetails.png"><div class="caption">Bot Details Dark</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/nS4ndG9/botstarted.png"><div class="caption">Bot Started</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/v6DwWrh5/Dashboard.png"><div class="caption">Dashboard Alt</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/q3LR7RyK/enter-site.png"><div class="caption">Enter Site</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/rftrpSd6/login.png"><div class="caption">Login</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/QF0170Tn/publish-light.png"><div class="caption">Publish Strategy Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/tpxSFWPk/Publish-Strategy.png"><div class="caption">Publish Strategy Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/S7Ks48wr/register.png"><div class="caption">Register Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/wNvJWhSK/register-light.png"><div class="caption">Register Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/MDtJ3H8X/settings-light.png"><div class="caption">Settings Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/qFpm32J5/Strategy-Builder.png"><div class="caption">Strategy Builder Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/h1sCHCNY/Strategy-Builder-Light.png"><div class="caption">Strategy Builder Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/j9YhF1Y7/Strategy-Lab.png"><div class="caption">Strategy Lab Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/0jqg6L5M/Strategy-Lab-Light.png"><div class="caption">Strategy Lab Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/KxvSbCCR/superuser-dashboard.png"><div class="caption">Superuser Dashboard</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/5x1BddY0/superuser-light.png"><div class="caption">Superuser Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/S49pzRCM/Trade-History.png"><div class="caption">Trade History Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/zWKkrygZ/Trade-History-light.png"><div class="caption">Trade History Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/vxbsmTvz/visual-details.png"><div class="caption">Visual Details</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/35Q8R2mK/visual-strategy-dark.png"><div class="caption">Visual Strategy Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/JF3vKxyM/Wallet-Light.png"><div class="caption">Wallet Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/yc5wQWM3/Wallets.png"><div class="caption">Wallets Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/MWWyL9v/2fa.png"><div class="caption">2FA Security</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/Y7x4swdf/2fa-dark.png"><div class="caption">2FA Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/ZRL0PQX3/APIKeys.png"><div class="caption">API Keys Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/sJWBpYfK/APIKeys-light.png"><div class="caption">API Keys Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/JR2PynRB/automate.png"><div class="caption">Automate</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/LXyw6QTH/backtest-analyze.png"><div class="caption">Backtest Analyze</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/dJPc33Ln/backtest-result.png"><div class="caption">Backtest Result</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/rK3qx0gY/Billing.png"><div class="caption">Billing Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/TMZ2045k/Billing-Light.png"><div class="caption">Billing Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/27M0JBz7/Bot-Analytics.png"><div class="caption">Bot Analytics</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/bjPZm4CK/Bot-Details.png"><div class="caption">Bot Details Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/j9qGtq4c/Bot-Details-Light.png"><div class="caption">Bot Details Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/Y4ztxX4M/Bots.png"><div class="caption">Bots Overview</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/CCMbm91/Bots-light.png"><div class="caption">Bots Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/B5PnQytM/Bot-Started.png"><div class="caption">Bot Started</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/vxGpGyCF/create-bot.png"><div class="caption">Create Bot Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/5xJwBzQY/create-bot-light.png"><div class="caption">Create Bot Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/7NSrxZTB/dark-lab.png"><div class="caption">Dark Lab</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/0jb68JwD/Dashboard.png"><div class="caption">Dashboard Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/rRT9n9Wr/dashboard2.png"><div class="caption">Dashboard V2</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/zhrByZd0/dashboard-dark.png"><div class="caption">Dashboard Dark Alt</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/4RCGB764/Dashboard-light.png"><div class="caption">Dashboard Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/j9sj0kdM/Integrations.png"><div class="caption">Integrations Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/rfyp2bcy/Integrations-Light.png"><div class="caption">Integrations Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/chfxs82j/lab-sensei.png"><div class="caption">Lab Sensei</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/ccKX5Vpm/lab-strategy.png"><div class="caption">Lab Strategy</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/v69CHRnX/loading-dashboard-dark.png"><div class="caption">Loading Dashboard</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/zWDMS3xp/loading-optimization.png"><div class="caption">Loading Optimization</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/zW8Mfw9h/login.png"><div class="caption">Login Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/DHgyPnB7/login-light.png"><div class="caption">Login Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/SDTzhb16/Market-Place.png"><div class="caption">Marketplace Dark</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/My0Z0G77/Market-Place-Light.png"><div class="caption">Marketplace Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/zTkXR70y/optimization-result.png"><div class="caption">Optimization Result</div></div>
         </div>
         <div class="swiper-pagination"></div>
     </div>
@@ -153,14 +178,26 @@
     <div class="swiper mySwiper">
         <div class="swiper-wrapper">
             <!-- Windows Images -->
-            <div class="swiper-slide"><img src="https://i.ibb.co/TxY0Xcfk/analytics1.png"><div class="caption">Analytics 1</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/yFsbVmcD/analytics2.png"><div class="caption">Analytics 2</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/PvZd97Rh/analytics3.png"><div class="caption">Analytics 3</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/QvzByJbj/backtest1.png"><div class="caption">Backtest 1</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/DfPCjZQF/backtested2.png"><div class="caption">Backtested 2</div></div>
-            <div class="swiper-slide"><img src="https://i.ibb.co/LdrwyhtC/iwndows3.png"><div class="caption">Windows 3</div></div>
-            <!-- Note: Fixed broken link below from input list -->
-            <div class="swiper-slide"><img src="https://i.ibb.co/4Z18skYJ/windows2.png"><div class="caption">Windows 2</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/Wvb9BgTr/iwndows3.png"><div class="caption">Windows View 3</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/N2Cnmhd2/key-activate.png"><div class="caption">Key Activation</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/ZRbCfnyP/loader.png"><div class="caption">App Loader</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/cPFb1fM/model-trainig.png"><div class="caption">Model Training</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/MxSDmx16/optimizer.png"><div class="caption">Optimizer</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/5tHLKnp/portfolio-light.png"><div class="caption">Portfolio Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/Mk41Kx7q/preferences.png"><div class="caption">Preferences</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/x8PnqhLy/serial-key.png"><div class="caption">Serial Key</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/01BqjB6/strategy-config-light.png"><div class="caption">Strategy Config Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/8nZYwQXx/windows1.png"><div class="caption">Windows View 1</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/8DHtyZx2/windows2.png"><div class="caption">Windows View 2</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/1JrTZzg0/ai-signal-light.png"><div class="caption">AI Signal Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/zT7GrJ0H/analytics1.png"><div class="caption">Analytics 1</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/MyrX2Lhf/analytics2.png"><div class="caption">Analytics 2</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/XfRqFtNB/analytics3.png"><div class="caption">Analytics 3</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/XfRqFtNB/analytics3.png"><div class="caption">Analytics 3 (Alt)</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/nsYVHnxk/analytics-light.png"><div class="caption">Analytics Light</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/VbsLnKG/backtest1.png"><div class="caption">Backtest 1</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/x8KZqYXz/backtested2.png"><div class="caption">Backtested 2</div></div>
+            <div class="swiper-slide"><img src="https://i.ibb.co/bg2bsX7f/backtest-light.png"><div class="caption">Backtest Light</div></div>
         </div>
         <div class="swiper-pagination"></div>
     </div>
